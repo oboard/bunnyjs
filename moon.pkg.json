@@ -1,8 +1,6 @@
 {
   "import": [
+    "oboard/bunnyjs/parser",
     "oboard/bunnyjs/value"
-  ],
-  "test-import": [
-    "oboard/bunnyjs/parser"
   ]
 }

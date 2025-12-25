@@ -1,0 +1,121 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "oboard/bunnyjs/parser"
+
+import(
+  "bobzhang/lexer"
+  "moonbitlang/core/json"
+)
+
+// Values
+pub fn parse(String) -> ASTNode
+
+// Errors
+
+// Types and methods
+pub struct ASTNode {
+  node_type : NodeType
+  loc : SourceLocation?
+  body : Array[ASTNode]
+  operator : String?
+  left : ASTNode?
+  right : ASTNode?
+  argument : ASTNode?
+  declarations : Array[ASTNode]
+  kind : VariableKind?
+  id : ASTNode?
+  init : ASTNode?
+  params : Array[ASTNode]
+  callee : ASTNode?
+  name : String?
+  value : String?
+  raw : String?
+  condition : ASTNode?
+  consequent : ASTNode?
+  alternate : ASTNode?
+  properties : Array[ASTNode]
+  elements : Array[ASTNode]
+  key : ASTNode?
+  node_method : Bool?
+  shorthand : Bool?
+}
+pub impl Show for ASTNode
+pub impl ToJson for ASTNode
+
+pub enum NodeType {
+  Program
+  VariableDeclaration
+  VariableDeclarator
+  FunctionDeclaration
+  BlockStatement
+  ReturnStatement
+  ExpressionStatement
+  BinaryExpression
+  CallExpression
+  Identifier
+  Literal
+  IfStatement
+  WhileStatement
+  ForStatement
+  AssignmentExpression
+  MemberExpression
+  ObjectExpression
+  ArrayExpression
+  Property
+  UnaryExpression
+  UpdateExpression
+}
+pub impl Eq for NodeType
+pub impl Show for NodeType
+pub impl ToJson for NodeType
+pub impl @json.FromJson for NodeType
+
+pub struct Parser {
+  lexer : @lexer.Lexer
+  mut current : Token
+  mut peek : Token
+}
+pub fn Parser::new(String) -> Self
+
+type Position
+pub impl Eq for Position
+pub impl Show for Position
+pub impl ToJson for Position
+pub impl @json.FromJson for Position
+
+type SourceLocation
+pub impl Eq for SourceLocation
+pub impl Show for SourceLocation
+pub impl ToJson for SourceLocation
+pub impl @json.FromJson for SourceLocation
+
+pub enum SourceType {
+  Script
+  Module
+}
+pub impl Eq for SourceType
+pub impl Show for SourceType
+pub impl ToJson for SourceType
+pub impl @json.FromJson for SourceType
+
+type Token
+pub impl Eq for Token
+pub impl Show for Token
+
+type TokenKind
+pub impl Eq for TokenKind
+pub impl Show for TokenKind
+
+pub enum VariableKind {
+  Var
+  Let
+  Const
+}
+pub impl Eq for VariableKind
+pub impl Show for VariableKind
+pub impl ToJson for VariableKind
+pub impl @json.FromJson for VariableKind
+
+// Type aliases
+
+// Traits
+

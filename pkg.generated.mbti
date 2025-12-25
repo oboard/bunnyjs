@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "oboard/bunnyjs"
+
+import(
+  "oboard/bunnyjs/value"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct Context {
+  global_scope : Map[String, @value.JSValue]
+}
+pub fn Context::eval(Self, String) -> @value.JSValue
+pub fn Context::new() -> Self
+
+// Type aliases
+
+// Traits
+

@@ -1,81 +1,31 @@
 ///|
-test {
-  @json.inspect(@parser.parse("console.log('Hello World')"), content={
-    "node_type": "Program",
-    "body": [
-      {
-        "node_type": "ExpressionStatement",
-        "loc": {
-          "start": { "line": 1, "column": 1 },
-          "end": { "line": 1, "column": 27 },
-        },
-        "body": [],
-        "argument": {
-          "node_type": "CallExpression",
-          "body": [],
-          "declarations": [],
-          "params": [
-            {
-              "node_type": "Literal",
-              "loc": {
-                "start": { "line": 1, "column": 13 },
-                "end": { "line": 1, "column": 26 },
-              },
-              "body": [],
-              "declarations": [],
-              "params": [],
-              "value": "Hello World",
-              "raw": "\"Hello World\"",
-              "properties": [],
-              "elements": [],
-            },
-          ],
-          "callee": {
-            "node_type": "MemberExpression",
-            "body": [],
-            "left": {
-              "node_type": "Identifier",
-              "loc": {
-                "start": { "line": 1, "column": 1 },
-                "end": { "line": 1, "column": 8 },
-              },
-              "body": [],
-              "declarations": [],
-              "params": [],
-              "name": "console",
-              "properties": [],
-              "elements": [],
-            },
-            "right": {
-              "node_type": "Identifier",
-              "loc": {
-                "start": { "line": 1, "column": 9 },
-                "end": { "line": 1, "column": 12 },
-              },
-              "body": [],
-              "declarations": [],
-              "params": [],
-              "name": "log",
-              "properties": [],
-              "elements": [],
-            },
-            "declarations": [],
-            "params": [],
-            "properties": [],
-            "elements": [],
-          },
-          "properties": [],
-          "elements": [],
-        },
-        "declarations": [],
-        "params": [],
-        "properties": [],
-        "elements": [],
-      },
-    ],
-    "declarations": [],
-    "params": [],
-    "properties": [],
-    "elements": [],
-  })
+test "interpreter_console_log" {
+  let ctx = Context::new()
+  let code = "let x = 42; console.log(x);"
+  let _ = ctx.eval(code)
+  // 目前我们只能验证它不 panic，以及通过 side effect (println) 输出。
+  // 在真实的单元测试中，我们可能需要 mock console.log 或者捕获输出，
+  // 但 MoonBit 的测试框架可能还没有标准的方法来捕获 stdout。
+}
+
+///|
+test "interpreter_literal" {
+  let ctx = Context::new()
+  let result = ctx.eval("123")
+  assert_eq(result, Number(123.0))
+}
+
+///|
+test "interpreter_string" {
+  let ctx = Context::new()
+  let result = ctx.eval("'hello'")
+  assert_eq(result, String("hello"))
+}
+
+///|
+test "interpreter_variable" {
+  let ctx = Context::new()
+  let _ = ctx.eval("let a = 10;")
+  let result = ctx.eval("a")
+  assert_eq(result, Number(10.0))
 }

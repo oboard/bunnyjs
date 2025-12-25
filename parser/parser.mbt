@@ -1,8 +1,5 @@
 ///|
-// using @value {type JSValue}
-
-///|
-enum NodeType {
+pub enum NodeType {
   Program
   VariableDeclaration
   VariableDeclarator
@@ -27,13 +24,13 @@ enum NodeType {
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
-enum SourceType {
+pub enum SourceType {
   Script
   Module
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
-enum VariableKind {
+pub enum VariableKind {
   Var
   Let
   Const
@@ -52,7 +49,7 @@ struct SourceLocation {
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
-pub(all) struct ASTNode {
+pub struct ASTNode {
   node_type : NodeType
   loc : SourceLocation?
   // Common fields
@@ -220,7 +217,7 @@ struct Token {
   loc : SourceLocation
 } derive(Show, Eq)
 
-// --- Parser Implementation ---
+// --- Parser Implementation ---F
 
 ///|
 pub struct Parser {
