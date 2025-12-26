@@ -1,0 +1,35 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "oboard/bunnyjs/lexer"
+
+import(
+  "oboard/bunnyjs/tokens"
+)
+
+// Values
+pub fn parse(String) -> Array[LexToken]
+
+// Errors
+
+// Types and methods
+pub(all) struct LexToken {
+  kind : @tokens.TokenKind
+  value : String
+  line : Int
+  column : Int
+}
+pub impl Eq for LexToken
+pub impl Show for LexToken
+
+pub(all) struct Lexer {
+  input : String
+  mut position : Int
+  mut line : Int
+  mut column : Int
+}
+pub fn Lexer::new(String) -> Self
+pub fn Lexer::tokenize(Self) -> Array[LexToken]
+
+// Type aliases
+
+// Traits
+

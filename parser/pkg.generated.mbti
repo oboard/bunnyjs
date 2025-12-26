@@ -2,93 +2,1877 @@
 package "oboard/bunnyjs/parser"
 
 import(
-  "bobzhang/lexer"
+  "moonbitlang/core/bigint"
   "moonbitlang/core/json"
+  "oboard/bunnyjs/lexer"
 )
 
 // Values
-pub fn parse(String) -> ASTNode
+pub fn parse(Array[@lexer.LexToken]) -> Program
 
 // Errors
 
 // Types and methods
-pub struct ASTNode {
-  node_type : NodeType
-  loc : SourceLocation?
-  body : Array[ASTNode]
-  operator : String?
-  left : ASTNode?
-  right : ASTNode?
-  argument : ASTNode?
-  declarations : Array[ASTNode]
-  kind : VariableKind?
-  id : ASTNode?
-  init : ASTNode?
-  params : Array[ASTNode]
-  callee : ASTNode?
-  name : String?
-  value : String?
-  raw : String?
-  condition : ASTNode?
-  consequent : ASTNode?
-  alternate : ASTNode?
-  properties : Array[ASTNode]
-  elements : Array[ASTNode]
-  key : ASTNode?
-  node_method : Bool?
-  shorthand : Bool?
+pub enum ASTNode {
+  Program(Program)
+  Statement(Statement)
+  Expression(Expression)
 }
+pub impl Eq for ASTNode
 pub impl Show for ASTNode
 pub impl ToJson for ASTNode
+pub impl @json.FromJson for ASTNode
 
-pub enum NodeType {
-  Program
-  VariableDeclaration
-  VariableDeclarator
-  FunctionDeclaration
-  BlockStatement
-  ReturnStatement
-  ExpressionStatement
-  BinaryExpression
-  CallExpression
-  Identifier
-  Literal
-  IfStatement
-  WhileStatement
-  ForStatement
-  AssignmentExpression
-  MemberExpression
-  ObjectExpression
-  ArrayExpression
-  Property
-  UnaryExpression
-  UpdateExpression
+pub(all) enum Accessibility {
+  Public
+  Protected
+  Private
+}
+pub impl Eq for Accessibility
+pub impl Show for Accessibility
+pub impl ToJson for Accessibility
+pub impl @json.FromJson for Accessibility
+
+pub(all) enum AnyExport {
+  ExportNamedDeclaration(ExportNamedDeclaration)
+  ExportDefaultDeclaration(ExportDefaultDeclaration)
+  ExportAllDeclaration(ExportAllDeclaration)
+  TsExportAssignment(TsExportAssignment)
+  TsImportEqualsDeclaration(TsImportEqualsDeclaration)
+  TsNamespaceExportDeclaration(TsNamespaceExportDeclaration)
+}
+pub impl Eq for AnyExport
+pub impl Show for AnyExport
+pub impl ToJson for AnyExport
+pub impl @json.FromJson for AnyExport
+
+pub(all) enum AnyImport {
+  ImportDeclaration(ImportDeclaration)
+  TsImportEqualsDeclaration(TsImportEqualsDeclaration)
+}
+pub impl Eq for AnyImport
+pub impl Show for AnyImport
+pub impl ToJson for AnyImport
+pub impl @json.FromJson for AnyImport
+
+pub struct ArgumentPlaceholder {
+}
+pub impl Compare for ArgumentPlaceholder
+pub impl Eq for ArgumentPlaceholder
+pub impl Hash for ArgumentPlaceholder
+pub impl Show for ArgumentPlaceholder
+pub impl ToJson for ArgumentPlaceholder
+pub impl @json.FromJson for ArgumentPlaceholder
+
+pub enum ArrayExpression {
+  Expression(Expression)
+  SpreadElement(argument~ : Expression)
+  None
+}
+pub impl Eq for ArrayExpression
+pub impl Show for ArrayExpression
+pub impl ToJson for ArrayExpression
+pub impl @json.FromJson for ArrayExpression
+
+pub struct ArrayPattern {
+  elements : Array[Pattern?]
+  optional : Bool?
+  typeAnnotation : TypeAnnotation?
+}
+pub impl Eq for ArrayPattern
+pub impl Show for ArrayPattern
+pub impl ToJson for ArrayPattern
+pub impl @json.FromJson for ArrayPattern
+
+pub struct ArrowFunctionExpression {
+  params : Array[Pattern]
+  body : FunctionBody
+  generator : Bool
+  async_ : Bool
+  expression : Bool
+  typeParameters : TypeParameterDeclaration?
+  returnType : TypeAnnotation?
+}
+pub impl Eq for ArrowFunctionExpression
+pub impl Show for ArrowFunctionExpression
+pub impl ToJson for ArrowFunctionExpression
+pub impl @json.FromJson for ArrowFunctionExpression
+
+pub(all) enum Assignable {
+  Pattern(Pattern)
+  MemberExpression(MemberExpression)
+  TsTypeCastExpression(TsTypeCastExpression)
+  TypeCastExpression(TypeCastExpression)
+}
+pub impl Eq for Assignable
+pub impl Show for Assignable
+pub impl ToJson for Assignable
+pub impl @json.FromJson for Assignable
+
+pub struct AssignmentExpression {
+  operator : AssignmentOperator
+  left : Pattern
+  right : Expression
+}
+pub impl Eq for AssignmentExpression
+pub impl Show for AssignmentExpression
+pub impl ToJson for AssignmentExpression
+pub impl @json.FromJson for AssignmentExpression
+
+pub(all) enum AssignmentOperator {
+  Assign
+  Plus
+  Star
+  Slash
+  PercentAssign
+  MinusAssign
+  MultiplyAssign
+  DivideAssign
+  ModuloAssign
+  LeftShiftAssign
+  RightShiftAssign
+  UnsignedRightShiftAssign
+  BitwiseOrAssign
+  BitwiseXorAssign
+  BitwiseAndAssign
+  LogicalAndAssign
+  LogicalOrAssign
+  NullishAssign
+}
+pub impl Eq for AssignmentOperator
+pub impl Show for AssignmentOperator
+pub impl ToJson for AssignmentOperator
+pub impl @json.FromJson for AssignmentOperator
+
+pub struct AssignmentPattern {
+  left : Pattern
+  right : Expression
+  optional : Bool?
+  typeAnnotation : TypeAnnotation?
+}
+pub impl Eq for AssignmentPattern
+pub impl Show for AssignmentPattern
+pub impl ToJson for AssignmentPattern
+pub impl @json.FromJson for AssignmentPattern
+
+pub struct AssignmentProperty {
+  key : Expression
+  value : Pattern
+  shorthand : Bool
+  computed : Bool
+  decorators : Array[Decorator]
+}
+pub impl Eq for AssignmentProperty
+pub impl Show for AssignmentProperty
+pub impl ToJson for AssignmentProperty
+pub impl @json.FromJson for AssignmentProperty
+
+pub struct AwaitExpression {
+  argument : Expression
+}
+pub impl Eq for AwaitExpression
+pub impl Show for AwaitExpression
+pub impl ToJson for AwaitExpression
+pub impl @json.FromJson for AwaitExpression
+
+pub struct BigIntLiteral {
+  value : @bigint.BigInt
+}
+pub impl Eq for BigIntLiteral
+pub impl Show for BigIntLiteral
+pub impl ToJson for BigIntLiteral
+pub impl @json.FromJson for BigIntLiteral
+
+pub struct BinaryExpression {
+  operator : BinaryOperator
+  left : Expression
+  right : Expression
+}
+pub impl Eq for BinaryExpression
+pub impl Show for BinaryExpression
+pub impl ToJson for BinaryExpression
+pub impl @json.FromJson for BinaryExpression
+
+pub(all) enum BinaryOperator {
+  Equal
+  NotEqual
+  StrictEqual
+  StrictNotEqual
+  LessThan
+  LessThanOrEqual
+  GreaterThan
+  GreaterThanOrEqual
+  LeftShift
+  RightShift
+  UnsignedRightShift
+  Plus
+  Star
+  Slash
+  Percent
+  Minus
+  Multiply
+  Divide
+  Modulo
+  BitwiseOr
+  BitwiseXor
+  BitwiseAnd
+  In
+  Instanceof
+}
+pub impl Eq for BinaryOperator
+pub impl Show for BinaryOperator
+pub impl ToJson for BinaryOperator
+pub impl @json.FromJson for BinaryOperator
+
+pub struct BindExpression {
+  object : Expression?
+  callee : Expression
+}
+pub impl Eq for BindExpression
+pub impl Show for BindExpression
+pub impl ToJson for BindExpression
+pub impl @json.FromJson for BindExpression
+
+pub struct BlockStatement {
+  body : Array[Statement]
+  directives : Array[Directive]
+}
+pub impl Eq for BlockStatement
+pub impl Show for BlockStatement
+pub impl ToJson for BlockStatement
+pub impl @json.FromJson for BlockStatement
+
+pub(all) enum BlockStatementLike {
+  Program(Program)
+  BlockStatement(BlockStatement)
+}
+pub impl Eq for BlockStatementLike
+pub impl Show for BlockStatementLike
+pub impl ToJson for BlockStatementLike
+pub impl @json.FromJson for BlockStatementLike
+
+pub struct BodilessFunctionOrMethodBase {
+  id : Identifier?
+  params : Array[Pattern]
+  generator : Bool
+  async_ : Bool
+  expression : Bool
+  typeParameters : TypeParameterDeclaration?
+  returnType : TypeAnnotation?
+  decorators : Array[Decorator]
+}
+pub impl Eq for BodilessFunctionOrMethodBase
+pub impl Show for BodilessFunctionOrMethodBase
+pub impl ToJson for BodilessFunctionOrMethodBase
+pub impl @json.FromJson for BodilessFunctionOrMethodBase
+
+pub struct BooleanLiteral {
+  value : Bool
+}
+pub impl Eq for BooleanLiteral
+pub impl Show for BooleanLiteral
+pub impl ToJson for BooleanLiteral
+pub impl @json.FromJson for BooleanLiteral
+
+pub struct BreakStatement {
+  label : Identifier?
+}
+pub impl Eq for BreakStatement
+pub impl Show for BreakStatement
+pub impl ToJson for BreakStatement
+pub impl @json.FromJson for BreakStatement
+
+pub struct CallExpression {
+  callee : Expression
+  arguments : Array[Expression]
+  optional : Bool
+  typeArguments : TypeParameterInstantiation?
+}
+pub impl Eq for CallExpression
+pub impl Show for CallExpression
+pub impl ToJson for CallExpression
+pub impl @json.FromJson for CallExpression
+
+pub struct CallOrNewBase {
+  callee : Expression
+  arguments : Array[Expression]
+  optional : Bool
+  typeArguments : TypeParameterInstantiation?
+}
+pub impl Eq for CallOrNewBase
+pub impl Show for CallOrNewBase
+pub impl ToJson for CallOrNewBase
+pub impl @json.FromJson for CallOrNewBase
+
+pub struct CatchClause {
+  param : Pattern?
+  body : BlockStatement
+}
+pub impl Eq for CatchClause
+pub impl Show for CatchClause
+pub impl ToJson for CatchClause
+pub impl @json.FromJson for CatchClause
+
+pub(all) enum Class {
+  ClassDeclaration(ClassDeclaration)
+  ClassExpression(ClassExpression)
+}
+pub impl Eq for Class
+pub impl Show for Class
+pub impl ToJson for Class
+pub impl @json.FromJson for Class
+
+pub struct ClassAccessorProperty {
+  key : Expression
+  value : Expression?
+  static_ : Bool
+  computed : Bool
+  accessibility : Accessibility?
+  override_ : Bool?
+  abstract_ : Bool?
+  optional : Bool?
+  typeAnnotation : TypeAnnotation?
+  readonly_ : Bool?
+  definite : Bool?
+  decorators : Array[Decorator]
+  variance : FlowVariance?
+}
+pub impl Eq for ClassAccessorProperty
+pub impl Show for ClassAccessorProperty
+pub impl ToJson for ClassAccessorProperty
+pub impl @json.FromJson for ClassAccessorProperty
+
+pub struct ClassBase {
+  id : Identifier?
+  superClass : Expression?
+  body : ClassBody
+  decorators : Array[Decorator]
+  typeParameters : TypeParameterDeclaration?
+  superTypeArguments : TypeParameterInstantiation?
+  abstract_ : Bool
+  implements : Array[TSClassImplements]?
+}
+pub impl Eq for ClassBase
+pub impl Show for ClassBase
+pub impl ToJson for ClassBase
+pub impl @json.FromJson for ClassBase
+
+pub struct ClassBody {
+  body : Array[ClassMember]
+}
+pub impl Eq for ClassBody
+pub impl Show for ClassBody
+pub impl ToJson for ClassBody
+pub impl @json.FromJson for ClassBody
+
+pub struct ClassDeclaration {
+  id : Identifier
+  superClass : Expression?
+  body : ClassBody
+  decorators : Array[Decorator]
+  typeParameters : TypeParameterDeclaration?
+  superTypeArguments : TypeParameterInstantiation?
+  abstract_ : Bool
+  implements : Array[TSClassImplements]?
+  declare_ : Bool
+}
+pub impl Eq for ClassDeclaration
+pub impl Show for ClassDeclaration
+pub impl ToJson for ClassDeclaration
+pub impl @json.FromJson for ClassDeclaration
+
+pub struct ClassExpression {
+  id : Identifier?
+  superClass : Expression?
+  body : ClassBody
+  decorators : Array[Decorator]
+  typeParameters : TypeParameterDeclaration?
+  superTypeArguments : TypeParameterInstantiation?
+  abstract_ : Bool
+  implements : Array[TSClassImplements]?
+}
+pub impl Eq for ClassExpression
+pub impl Show for ClassExpression
+pub impl ToJson for ClassExpression
+pub impl @json.FromJson for ClassExpression
+
+pub(all) enum ClassMember {
+  ClassMethod(ClassMethod)
+  ClassPrivateMethod(ClassPrivateMethod)
+  ClassProperty(ClassProperty)
+  ClassPrivateProperty(ClassPrivateProperty)
+  ClassAccessorProperty(ClassAccessorProperty)
+  StaticBlock(StaticBlock)
+}
+pub impl Eq for ClassMember
+pub impl Show for ClassMember
+pub impl ToJson for ClassMember
+pub impl @json.FromJson for ClassMember
+
+pub struct ClassMemberBase {
+  static_ : Bool
+  computed : Bool
+  accessibility : Accessibility?
+  override_ : Bool?
+  abstract_ : Bool?
+  optional : Bool?
+  decorators : Array[Decorator]
+}
+pub impl Eq for ClassMemberBase
+pub impl Show for ClassMemberBase
+pub impl ToJson for ClassMemberBase
+pub impl @json.FromJson for ClassMemberBase
+
+pub struct ClassMethod {
+  key : Expression
+  kind : MethodKind
+  static_ : Bool
+  computed : Bool
+  params : Array[Pattern]
+  body : BlockStatement
+  generator : Bool
+  async_ : Bool
+  accessibility : Accessibility?
+  override_ : Bool?
+  abstract_ : Bool?
+  optional : Bool?
+  decorators : Array[Decorator]
+  variance : FlowVariance?
+}
+pub impl Eq for ClassMethod
+pub impl Show for ClassMethod
+pub impl ToJson for ClassMethod
+pub impl @json.FromJson for ClassMethod
+
+pub struct ClassMethodOrDeclareMethodCommon {
+  key : Expression
+  kind : MethodKind
+  static_ : Bool
+  computed : Bool
+  declare_ : Bool?
+  decorators : Array[Decorator]
+  accessibility : Accessibility?
+  override_ : Bool?
+  optional : Bool?
+  abstract_ : Bool?
+}
+pub impl Eq for ClassMethodOrDeclareMethodCommon
+pub impl Show for ClassMethodOrDeclareMethodCommon
+pub impl ToJson for ClassMethodOrDeclareMethodCommon
+pub impl @json.FromJson for ClassMethodOrDeclareMethodCommon
+
+pub struct ClassPrivateMethod {
+  key : PrivateName
+  kind : MethodKind
+  static_ : Bool
+  computed : Bool
+  params : Array[Pattern]
+  body : BlockStatement
+  generator : Bool
+  async_ : Bool
+  decorators : Array[Decorator]
+  variance : FlowVariance?
+}
+pub impl Eq for ClassPrivateMethod
+pub impl Show for ClassPrivateMethod
+pub impl ToJson for ClassPrivateMethod
+pub impl @json.FromJson for ClassPrivateMethod
+
+pub struct ClassPrivateProperty {
+  key : PrivateName
+  value : Expression?
+  static_ : Bool
+  computed : Bool
+  typeAnnotation : TypeAnnotation?
+  optional : Bool?
+  definite : Bool?
+  readonly_ : Bool?
+  override_ : Bool?
+  decorators : Array[Decorator]
+  variance : FlowVariance?
+}
+pub impl Eq for ClassPrivateProperty
+pub impl Show for ClassPrivateProperty
+pub impl ToJson for ClassPrivateProperty
+pub impl @json.FromJson for ClassPrivateProperty
+
+pub struct ClassProperty {
+  key : Expression
+  value : Expression?
+  static_ : Bool
+  computed : Bool
+  accessibility : Accessibility?
+  override_ : Bool?
+  abstract_ : Bool?
+  optional : Bool?
+  typeAnnotation : TypeAnnotation?
+  readonly_ : Bool?
+  definite : Bool?
+  decorators : Array[Decorator]
+  variance : FlowVariance?
+}
+pub impl Eq for ClassProperty
+pub impl Show for ClassProperty
+pub impl ToJson for ClassProperty
+pub impl @json.FromJson for ClassProperty
+
+pub(all) enum Comment {
+  CommentBlock(CommentBlock)
+  CommentLine(CommentLine)
+}
+pub impl Eq for Comment
+pub impl Show for Comment
+pub impl ToJson for Comment
+pub impl @json.FromJson for Comment
+
+pub struct CommentBlock {
+  value : String
+  start : Int
+  end : Int
+  loc : SourceLocation
+}
+pub impl Eq for CommentBlock
+pub impl Show for CommentBlock
+pub impl ToJson for CommentBlock
+pub impl @json.FromJson for CommentBlock
+
+pub struct CommentLine {
+  value : String
+  start : Int
+  end : Int
+  loc : SourceLocation
+}
+pub impl Eq for CommentLine
+pub impl Show for CommentLine
+pub impl ToJson for CommentLine
+pub impl @json.FromJson for CommentLine
+
+pub struct CommentWhitespace {
+  start : Int
+  end : Int
+  comments : Array[Comment]
+  leadingNode : Json?
+  trailingNode : Json?
+  containerNode : Json?
+}
+pub impl Eq for CommentWhitespace
+pub impl Show for CommentWhitespace
+pub impl ToJson for CommentWhitespace
+pub impl @json.FromJson for CommentWhitespace
+
+pub struct ConditionalExpression {
+  test_ : Expression
+  alternate : Expression
+  consequent : Expression
+}
+pub impl Eq for ConditionalExpression
+pub impl Show for ConditionalExpression
+pub impl ToJson for ConditionalExpression
+pub impl @json.FromJson for ConditionalExpression
+
+pub struct ContinueStatement {
+  label : Identifier?
+}
+pub impl Eq for ContinueStatement
+pub impl Show for ContinueStatement
+pub impl ToJson for ContinueStatement
+pub impl @json.FromJson for ContinueStatement
+
+pub struct DebuggerStatement {
+}
+pub impl Eq for DebuggerStatement
+pub impl Show for DebuggerStatement
+pub impl ToJson for DebuggerStatement
+pub impl @json.FromJson for DebuggerStatement
+
+pub(all) enum Declaration {
+  VariableDeclaration(VariableDeclaration)
+  ClassDeclaration(ClassDeclaration)
+  FunctionDeclaration(FunctionDeclaration)
+  TsImportEqualsDeclaration(TsImportEqualsDeclaration)
+  TsInterfaceDeclaration(TsInterfaceDeclaration)
+  TsTypeAliasDeclaration(TsTypeAliasDeclaration)
+  TsEnumDeclaration(TsEnumDeclaration)
+  TsModuleDeclaration(TsModuleDeclaration)
+}
+pub impl Eq for Declaration
+pub impl Show for Declaration
+pub impl ToJson for Declaration
+pub impl @json.FromJson for Declaration
+
+pub struct DeclarationBase {
+  declare_ : Bool
+}
+pub impl Eq for DeclarationBase
+pub impl Show for DeclarationBase
+pub impl ToJson for DeclarationBase
+pub impl @json.FromJson for DeclarationBase
+
+pub struct Decorator {
+  expression : Expression
+}
+pub impl Eq for Decorator
+pub impl Show for Decorator
+pub impl ToJson for Decorator
+pub impl @json.FromJson for Decorator
+
+pub struct Directive {
+  value : DirectiveLiteral
+}
+pub impl Eq for Directive
+pub impl Show for Directive
+pub impl ToJson for Directive
+pub impl @json.FromJson for Directive
+
+pub struct DirectiveLiteral {
+  value : String
+}
+pub impl Eq for DirectiveLiteral
+pub impl Show for DirectiveLiteral
+pub impl ToJson for DirectiveLiteral
+pub impl @json.FromJson for DirectiveLiteral
+
+pub struct DoExpression {
+  body : BlockStatement?
+  async_ : Bool
+}
+pub impl Eq for DoExpression
+pub impl Show for DoExpression
+pub impl ToJson for DoExpression
+pub impl @json.FromJson for DoExpression
+
+pub struct DoWhileStatement {
+  body : Statement
+  test_ : Expression
+}
+pub impl Eq for DoWhileStatement
+pub impl Show for DoWhileStatement
+pub impl ToJson for DoWhileStatement
+pub impl @json.FromJson for DoWhileStatement
+
+pub struct EmptyStatement {
+}
+pub impl Eq for EmptyStatement
+pub impl Show for EmptyStatement
+pub impl ToJson for EmptyStatement
+pub impl @json.FromJson for EmptyStatement
+
+pub struct EstreeAccessorProperty {
+  key : Expression
+  value : Expression
+  static_ : Bool
+  computed : Bool
+  accessibility : Accessibility?
+  override_ : Bool?
+  optional : Bool?
+  declare_ : Bool?
+  decorators : Array[Decorator]
+  definite : Bool?
+  readonly_ : Bool?
+  typeAnnotation : TsTypeAnnotation?
+}
+pub impl Eq for EstreeAccessorProperty
+pub impl Show for EstreeAccessorProperty
+pub impl ToJson for EstreeAccessorProperty
+pub impl @json.FromJson for EstreeAccessorProperty
+
+pub struct EstreeBigIntLiteral {
+  value : Int?
+  raw : Json?
+  bigint : String
+}
+pub impl Eq for EstreeBigIntLiteral
+pub impl Show for EstreeBigIntLiteral
+pub impl ToJson for EstreeBigIntLiteral
+pub impl @json.FromJson for EstreeBigIntLiteral
+
+pub struct EstreeChainExpression {
+  expression : Expression
+}
+pub impl Eq for EstreeChainExpression
+pub impl Show for EstreeChainExpression
+pub impl ToJson for EstreeChainExpression
+pub impl @json.FromJson for EstreeChainExpression
+
+pub struct EstreeImportExpression {
+  source : Expression
+  options : Expression?
+}
+pub impl Eq for EstreeImportExpression
+pub impl Show for EstreeImportExpression
+pub impl ToJson for EstreeImportExpression
+pub impl @json.FromJson for EstreeImportExpression
+
+pub struct EstreeLiteral {
+  value : Json
+  raw : Json
+}
+pub impl Eq for EstreeLiteral
+pub impl Show for EstreeLiteral
+pub impl ToJson for EstreeLiteral
+pub impl @json.FromJson for EstreeLiteral
+
+pub struct EstreeMethodDefinition {
+  key : Expression
+  value : FunctionExpression
+  kind : MethodKind
+  static_ : Bool
+  computed : Bool
+  decorators : Array[Decorator]
+  accessibility : Accessibility?
+  override_ : Bool?
+  optional : Bool?
+}
+pub impl Eq for EstreeMethodDefinition
+pub impl Show for EstreeMethodDefinition
+pub impl ToJson for EstreeMethodDefinition
+pub impl @json.FromJson for EstreeMethodDefinition
+
+pub struct EstreePrivateIdentifier {
+  name : String
+}
+pub impl Eq for EstreePrivateIdentifier
+pub impl Show for EstreePrivateIdentifier
+pub impl ToJson for EstreePrivateIdentifier
+pub impl @json.FromJson for EstreePrivateIdentifier
+
+pub struct EstreeProperty {
+  key : Expression
+  value : Expression
+  kind : EstreePropertyKind?
+  method_ : Bool
+  shorthand : Bool
+  computed : Bool
+  decorators : Array[Decorator]
+  variance : FlowVariance?
+  optional : Bool?
+}
+pub impl Eq for EstreeProperty
+pub impl Show for EstreeProperty
+pub impl ToJson for EstreeProperty
+pub impl @json.FromJson for EstreeProperty
+
+pub struct EstreePropertyDefinition {
+  key : Expression
+  value : Expression
+  static_ : Bool
+  computed : Bool
+  accessibility : Accessibility?
+  override_ : Bool?
+  optional : Bool?
+  declare_ : Bool?
+  decorators : Array[Decorator]
+  definite : Bool?
+  readonly_ : Bool?
+  typeAnnotation : TsTypeAnnotation?
+}
+pub impl Eq for EstreePropertyDefinition
+pub impl Show for EstreePropertyDefinition
+pub impl ToJson for EstreePropertyDefinition
+pub impl @json.FromJson for EstreePropertyDefinition
+
+pub(all) enum EstreePropertyKind {
+  Init
+  Get
+  Set
+}
+pub impl Eq for EstreePropertyKind
+pub impl Show for EstreePropertyKind
+pub impl ToJson for EstreePropertyKind
+pub impl @json.FromJson for EstreePropertyKind
+
+pub struct EstreeRegExpLiteral {
+  value : Json?
+  raw : Json?
+  regex : EstreeRegExpLiteralRegex
+}
+pub impl Eq for EstreeRegExpLiteral
+pub impl Show for EstreeRegExpLiteral
+pub impl ToJson for EstreeRegExpLiteral
+pub impl @json.FromJson for EstreeRegExpLiteral
+
+pub struct EstreeRegExpLiteralRegex {
+  pattern : String
+  flags : String
+}
+pub impl Eq for EstreeRegExpLiteralRegex
+pub impl Show for EstreeRegExpLiteralRegex
+pub impl ToJson for EstreeRegExpLiteralRegex
+pub impl @json.FromJson for EstreeRegExpLiteralRegex
+
+pub struct EstreeTSAbstractAccessorProperty {
+  key : Expression
+  value : Json?
+  static_ : Bool
+  computed : Bool
+  accessibility : Accessibility?
+  override_ : Bool?
+  optional : Bool?
+  declare_ : Bool?
+  decorators : Array[Decorator]
+  definite : Bool?
+  readonly_ : Bool?
+  typeAnnotation : TsTypeAnnotation?
+}
+pub impl Eq for EstreeTSAbstractAccessorProperty
+pub impl Show for EstreeTSAbstractAccessorProperty
+pub impl ToJson for EstreeTSAbstractAccessorProperty
+pub impl @json.FromJson for EstreeTSAbstractAccessorProperty
+
+pub struct EstreeTSAbstractMethodDefinition {
+  key : Expression
+  value : EstreeTSEmptyBodyFunctionExpression
+  kind : MethodKind
+  static_ : Bool
+  computed : Bool
+  decorators : Array[Decorator]
+  accessibility : Accessibility?
+  override_ : Bool?
+  optional : Bool?
+}
+pub impl Eq for EstreeTSAbstractMethodDefinition
+pub impl Show for EstreeTSAbstractMethodDefinition
+pub impl ToJson for EstreeTSAbstractMethodDefinition
+pub impl @json.FromJson for EstreeTSAbstractMethodDefinition
+
+pub struct EstreeTSAbstractPropertyDefinition {
+  key : Expression
+  value : Json?
+  static_ : Bool
+  computed : Bool
+  accessibility : Accessibility?
+  override_ : Bool?
+  optional : Bool?
+  declare_ : Bool?
+  decorators : Array[Decorator]
+  definite : Bool?
+  readonly_ : Bool?
+  typeAnnotation : TsTypeAnnotation?
+}
+pub impl Eq for EstreeTSAbstractPropertyDefinition
+pub impl Show for EstreeTSAbstractPropertyDefinition
+pub impl ToJson for EstreeTSAbstractPropertyDefinition
+pub impl @json.FromJson for EstreeTSAbstractPropertyDefinition
+
+pub struct EstreeTSEmptyBodyFunctionExpression {
+  params : Array[Pattern]
+  generator : Bool
+  async_ : Bool
+  typeParameters : TypeParameterDeclaration?
+  returnType : TypeAnnotation?
+}
+pub impl Eq for EstreeTSEmptyBodyFunctionExpression
+pub impl Show for EstreeTSEmptyBodyFunctionExpression
+pub impl ToJson for EstreeTSEmptyBodyFunctionExpression
+pub impl @json.FromJson for EstreeTSEmptyBodyFunctionExpression
+
+pub struct ExportAllDeclaration {
+  source : Literal
+  exportKind : ExportKind?
+  attributes : Array[ImportAttribute]
+}
+pub impl Eq for ExportAllDeclaration
+pub impl Show for ExportAllDeclaration
+pub impl ToJson for ExportAllDeclaration
+pub impl @json.FromJson for ExportAllDeclaration
+
+pub struct ExportDefaultDeclaration {
+  declaration : ExportDefaultDeclarationType
+}
+pub impl Eq for ExportDefaultDeclaration
+pub impl Show for ExportDefaultDeclaration
+pub impl ToJson for ExportDefaultDeclaration
+pub impl @json.FromJson for ExportDefaultDeclaration
+
+pub(all) enum ExportDefaultDeclarationType {
+  FunctionDeclaration(FunctionDeclaration)
+  ClassDeclaration(ClassDeclaration)
+  Expression(Expression)
+  TsInterfaceDeclaration
+  FlowEnumDeclaration
+}
+pub impl Eq for ExportDefaultDeclarationType
+pub impl Show for ExportDefaultDeclarationType
+pub impl ToJson for ExportDefaultDeclarationType
+pub impl @json.FromJson for ExportDefaultDeclarationType
+
+pub(all) enum ExportKind {
+  Type
+  Value
+}
+pub impl Eq for ExportKind
+pub impl Show for ExportKind
+pub impl ToJson for ExportKind
+pub impl @json.FromJson for ExportKind
+
+pub struct ExportNamedDeclaration {
+  declaration : Declaration?
+  specifiers : Array[ExportSpecifier]
+  source : Literal?
+  exportKind : ExportKind?
+  attributes : Array[ImportAttribute]
+}
+pub impl Eq for ExportNamedDeclaration
+pub impl Show for ExportNamedDeclaration
+pub impl ToJson for ExportNamedDeclaration
+pub impl @json.FromJson for ExportNamedDeclaration
+
+pub struct ExportSpecifier {
+  exported : Expression
+  local_ : Identifier
+  exportKind : ExportKind?
+}
+pub impl Eq for ExportSpecifier
+pub impl Show for ExportSpecifier
+pub impl ToJson for ExportSpecifier
+pub impl @json.FromJson for ExportSpecifier
+
+pub(all) enum Expression {
+  ArrayExpression(ArrayExpression)
+  AssignmentExpression(AssignmentExpression)
+  BinaryExpression(BinaryExpression)
+  CallExpression(CallExpression)
+  ConditionalExpression(ConditionalExpression)
+  FunctionExpression(FunctionExpression)
+  Identifier(Identifier)
+  StringLiteral(StringLiteral)
+  NumericLiteral(NumericLiteral)
+  NullLiteral(NullLiteral)
+  BooleanLiteral(BooleanLiteral)
+  RegExpLiteral(RegExpLiteral)
+  LogicalExpression(LogicalExpression)
+  MemberExpression(MemberExpression)
+  NewExpression(NewExpression)
+  ObjectExpression(ObjectExpression)
+  SequenceExpression(SequenceExpression)
+  ParenthesizedExpression(ParenthesizedExpression)
+  ThisExpression(ThisExpression)
+  UnaryExpression(UnaryExpression)
+  UpdateExpression(UpdateExpression)
+  ArrowFunctionExpression(ArrowFunctionExpression)
+  ClassExpression(ClassExpression)
+  ImportExpression(ImportExpression)
+  MetaProperty(MetaProperty)
+  Super(Super)
+  TaggedTemplateExpression(TaggedTemplateExpression)
+  TemplateLiteral(TemplateLiteral)
+  YieldExpression(YieldExpression)
+  AwaitExpression(AwaitExpression)
+  Import(Import)
+  BigIntLiteral(BigIntLiteral)
+  OptionalMemberExpression(OptionalMemberExpression)
+  OptionalCallExpression(OptionalCallExpression)
+  TypeCastExpression(TypeCastExpression)
+  JSXElement(JSXElement)
+  JSXFragment(JSXFragment)
+  BindExpression(BindExpression)
+  DoExpression(DoExpression)
+  ModuleExpression(ModuleExpression)
+  TopicReference(TopicReference)
+  TsInstantiationExpression(TsInstantiationExpression)
+  TsAsExpression(TsAsExpression)
+  TsSatisfiesExpression(TsSatisfiesExpression)
+  TsTypeAssertion(TsTypeAssertion)
+  TsTypeCastExpression(TsTypeCastExpression)
+  TsNonNullExpression(TsNonNullExpression)
+  EstreeChainExpression(EstreeChainExpression)
+  EstreeLiteral(EstreeLiteral)
+}
+pub impl Eq for Expression
+pub impl Show for Expression
+pub impl ToJson for Expression
+pub impl @json.FromJson for Expression
+
+pub struct ExpressionStatement {
+  expression : Expression
+  directive : Directive?
+}
+pub impl Eq for ExpressionStatement
+pub impl Show for ExpressionStatement
+pub impl ToJson for ExpressionStatement
+pub impl @json.FromJson for ExpressionStatement
+
+pub struct File {
+  program : Program
+  comments : Array[Comment]
+  errors : Array[ParseError]
+  tokens : Array[Token]?
+}
+pub impl Eq for File
+pub impl Show for File
+pub impl ToJson for File
+pub impl @json.FromJson for File
+
+pub struct FlowDeclareClass {
+}
+pub impl Eq for FlowDeclareClass
+pub impl Show for FlowDeclareClass
+pub impl ToJson for FlowDeclareClass
+pub impl @json.FromJson for FlowDeclareClass
+
+pub struct FlowDeclareExportDeclaration {
+}
+pub impl Compare for FlowDeclareExportDeclaration
+pub impl Eq for FlowDeclareExportDeclaration
+pub impl Hash for FlowDeclareExportDeclaration
+pub impl Show for FlowDeclareExportDeclaration
+pub impl ToJson for FlowDeclareExportDeclaration
+pub impl @json.FromJson for FlowDeclareExportDeclaration
+
+pub struct FlowDeclareFunction {
+}
+pub impl Compare for FlowDeclareFunction
+pub impl Eq for FlowDeclareFunction
+pub impl Hash for FlowDeclareFunction
+pub impl Show for FlowDeclareFunction
+pub impl ToJson for FlowDeclareFunction
+pub impl @json.FromJson for FlowDeclareFunction
+
+pub struct FlowDeclareInterface {
+}
+pub impl Compare for FlowDeclareInterface
+pub impl Eq for FlowDeclareInterface
+pub impl Hash for FlowDeclareInterface
+pub impl Show for FlowDeclareInterface
+pub impl ToJson for FlowDeclareInterface
+pub impl @json.FromJson for FlowDeclareInterface
+
+pub struct FlowDeclareModule {
+}
+pub impl Eq for FlowDeclareModule
+pub impl Show for FlowDeclareModule
+pub impl ToJson for FlowDeclareModule
+pub impl @json.FromJson for FlowDeclareModule
+
+pub struct FlowDeclareModuleExports {
+}
+pub impl Compare for FlowDeclareModuleExports
+pub impl Eq for FlowDeclareModuleExports
+pub impl Hash for FlowDeclareModuleExports
+pub impl Show for FlowDeclareModuleExports
+pub impl ToJson for FlowDeclareModuleExports
+pub impl @json.FromJson for FlowDeclareModuleExports
+
+pub struct FlowDeclareOpaqueType {
+}
+pub impl Compare for FlowDeclareOpaqueType
+pub impl Eq for FlowDeclareOpaqueType
+pub impl Hash for FlowDeclareOpaqueType
+pub impl Show for FlowDeclareOpaqueType
+pub impl ToJson for FlowDeclareOpaqueType
+pub impl @json.FromJson for FlowDeclareOpaqueType
+
+pub struct FlowDeclareTypeAlias {
+}
+pub impl Compare for FlowDeclareTypeAlias
+pub impl Eq for FlowDeclareTypeAlias
+pub impl Hash for FlowDeclareTypeAlias
+pub impl Show for FlowDeclareTypeAlias
+pub impl ToJson for FlowDeclareTypeAlias
+pub impl @json.FromJson for FlowDeclareTypeAlias
+
+pub struct FlowDeclareVariable {
+}
+pub impl Compare for FlowDeclareVariable
+pub impl Eq for FlowDeclareVariable
+pub impl Hash for FlowDeclareVariable
+pub impl Show for FlowDeclareVariable
+pub impl ToJson for FlowDeclareVariable
+pub impl @json.FromJson for FlowDeclareVariable
+
+pub struct FlowEnumDeclaration {
+}
+pub impl Compare for FlowEnumDeclaration
+pub impl Eq for FlowEnumDeclaration
+pub impl Hash for FlowEnumDeclaration
+pub impl Show for FlowEnumDeclaration
+pub impl ToJson for FlowEnumDeclaration
+pub impl @json.FromJson for FlowEnumDeclaration
+
+pub struct FlowInterface {
+}
+pub impl Eq for FlowInterface
+pub impl Show for FlowInterface
+pub impl ToJson for FlowInterface
+pub impl @json.FromJson for FlowInterface
+
+pub struct FlowOpaqueType {
+}
+pub impl Eq for FlowOpaqueType
+pub impl Show for FlowOpaqueType
+pub impl ToJson for FlowOpaqueType
+pub impl @json.FromJson for FlowOpaqueType
+
+pub(all) enum FlowType {
+  AnyTypeAnnotation
+  StringTypeAnnotation
+  NumberTypeAnnotation
+}
+pub impl Eq for FlowType
+pub impl Show for FlowType
+pub impl ToJson for FlowType
+pub impl @json.FromJson for FlowType
+
+pub struct FlowTypeAlias {
+}
+pub impl Eq for FlowTypeAlias
+pub impl Show for FlowTypeAlias
+pub impl ToJson for FlowTypeAlias
+pub impl @json.FromJson for FlowTypeAlias
+
+pub struct FlowVariance {
+  kind : FlowVarianceKind
+}
+pub impl Eq for FlowVariance
+pub impl Show for FlowVariance
+pub impl ToJson for FlowVariance
+pub impl @json.FromJson for FlowVariance
+
+pub(all) enum FlowVarianceKind {
+  In
+  Out
+}
+pub impl Eq for FlowVarianceKind
+pub impl Show for FlowVarianceKind
+pub impl ToJson for FlowVarianceKind
+pub impl @json.FromJson for FlowVarianceKind
+
+pub(all) enum ForInOf {
+  ForInStatement(ForInStatement)
+  ForOfStatement(ForOfStatement)
+}
+pub impl Eq for ForInOf
+pub impl Show for ForInOf
+pub impl ToJson for ForInOf
+pub impl @json.FromJson for ForInOf
+
+pub struct ForInStatement {
+  left : VariableDeclaration
+  right : Expression
+  body : Statement
+  await_ : Bool
+}
+pub impl Eq for ForInStatement
+pub impl Show for ForInStatement
+pub impl ToJson for ForInStatement
+pub impl @json.FromJson for ForInStatement
+
+pub(all) enum ForLike {
+  ForStatement(ForStatement)
+  ForInOf(ForInOf)
+}
+pub impl Eq for ForLike
+pub impl Show for ForLike
+pub impl ToJson for ForLike
+pub impl @json.FromJson for ForLike
+
+pub struct ForOfStatement {
+  left : VariableDeclaration
+  right : Expression
+  body : Statement
+  await_ : Bool
+}
+pub impl Eq for ForOfStatement
+pub impl Show for ForOfStatement
+pub impl ToJson for ForOfStatement
+pub impl @json.FromJson for ForOfStatement
+
+pub struct ForStatement {
+  init : VariableDeclaration?
+  test_ : Expression?
+  update : Expression?
+  body : Statement
+}
+pub impl Eq for ForStatement
+pub impl Show for ForStatement
+pub impl ToJson for ForStatement
+pub impl @json.FromJson for ForStatement
+
+pub(all) enum Function {
+  NormalFunction(NormalFunction)
+  ArrowFunctionExpression(ArrowFunctionExpression)
+  ObjectMethod(ObjectMethod)
+  ClassMethod(ClassMethod)
+}
+pub impl Eq for Function
+pub impl Show for Function
+pub impl ToJson for Function
+pub impl @json.FromJson for Function
+
+pub struct FunctionBase {
+  body : BlockStatement
+}
+pub impl Eq for FunctionBase
+pub impl Show for FunctionBase
+pub impl ToJson for FunctionBase
+pub impl @json.FromJson for FunctionBase
+
+pub(all) enum FunctionBody {
+  BlockStatement(BlockStatement)
+  Expression(Expression)
+}
+pub impl Eq for FunctionBody
+pub impl Show for FunctionBody
+pub impl ToJson for FunctionBody
+pub impl @json.FromJson for FunctionBody
+
+pub struct FunctionDeclaration {
+  id : Identifier
+  params : Array[Pattern]
+  body : BlockStatement
+  generator : Bool
+  async_ : Bool
+  expression : Bool
+  typeParameters : TypeParameterDeclaration?
+  returnType : TypeAnnotation?
+  declare_ : Bool
+}
+pub impl Eq for FunctionDeclaration
+pub impl Show for FunctionDeclaration
+pub impl ToJson for FunctionDeclaration
+pub impl @json.FromJson for FunctionDeclaration
+
+pub struct FunctionExpression {
+  id : Identifier?
+  params : Array[Pattern]
+  body : BlockStatement
+  generator : Bool
+  async_ : Bool
+  expression : Bool
+  typeParameters : TypeParameterDeclaration?
+  returnType : TypeAnnotation?
+}
+pub impl Eq for FunctionExpression
+pub impl Show for FunctionExpression
+pub impl ToJson for FunctionExpression
+pub impl @json.FromJson for FunctionExpression
+
+pub struct HasDecorators {
+  decorators : Array[Decorator]
+}
+pub impl Eq for HasDecorators
+pub impl Show for HasDecorators
+pub impl ToJson for HasDecorators
+pub impl @json.FromJson for HasDecorators
+
+pub struct Identifier {
+  name : String
+  optional : Bool
+  typeAnnotation : TypeAnnotation?
+}
+pub impl Eq for Identifier
+pub impl Show for Identifier
+pub impl ToJson for Identifier
+pub impl @json.FromJson for Identifier
+
+pub struct IfStatement {
+  test_ : Expression
+  consequent : Statement
+  alternate : Statement?
+}
+pub impl Eq for IfStatement
+pub impl Show for IfStatement
+pub impl ToJson for IfStatement
+pub impl @json.FromJson for IfStatement
+
+pub struct Import {
+}
+pub impl Eq for Import
+pub impl Show for Import
+pub impl ToJson for Import
+pub impl @json.FromJson for Import
+
+pub struct ImportAttribute {
+  key : Expression
+  value : String
+}
+pub impl Eq for ImportAttribute
+pub impl Show for ImportAttribute
+pub impl ToJson for ImportAttribute
+pub impl @json.FromJson for ImportAttribute
+
+pub struct ImportDeclaration {
+  specifiers : Array[ImportSpecifier]
+  source : Literal
+  importKind : ImportKind?
+  phase : ImportPhase?
+  attributes : Array[ImportAttribute]
+  module_ : Bool
+}
+pub impl Eq for ImportDeclaration
+pub impl Show for ImportDeclaration
+pub impl ToJson for ImportDeclaration
+pub impl @json.FromJson for ImportDeclaration
+
+pub struct ImportDefaultSpecifierData {
+  local_ : Identifier
+}
+pub impl Eq for ImportDefaultSpecifierData
+pub impl Show for ImportDefaultSpecifierData
+pub impl ToJson for ImportDefaultSpecifierData
+pub impl @json.FromJson for ImportDefaultSpecifierData
+
+pub struct ImportExpression {
+  source : Expression
+  phase : ImportPhase?
+  options : Expression?
+}
+pub impl Eq for ImportExpression
+pub impl Show for ImportExpression
+pub impl ToJson for ImportExpression
+pub impl @json.FromJson for ImportExpression
+
+pub(all) enum ImportKind {
+  Type
+  Typeof
+  Value
+}
+pub impl Eq for ImportKind
+pub impl Show for ImportKind
+pub impl ToJson for ImportKind
+pub impl @json.FromJson for ImportKind
+
+pub struct ImportNamespaceSpecifierData {
+  local_ : Identifier
+}
+pub impl Eq for ImportNamespaceSpecifierData
+pub impl Show for ImportNamespaceSpecifierData
+pub impl ToJson for ImportNamespaceSpecifierData
+pub impl @json.FromJson for ImportNamespaceSpecifierData
+
+pub(all) enum ImportPhase {
+  Source
+  Defer
+}
+pub impl Eq for ImportPhase
+pub impl Show for ImportPhase
+pub impl ToJson for ImportPhase
+pub impl @json.FromJson for ImportPhase
+
+pub(all) enum ImportSpecifier {
+  ImportSpecifier(ImportSpecifierData)
+  ImportDefaultSpecifier(ImportDefaultSpecifierData)
+  ImportNamespaceSpecifier(ImportNamespaceSpecifierData)
+}
+pub impl Eq for ImportSpecifier
+pub impl Show for ImportSpecifier
+pub impl ToJson for ImportSpecifier
+pub impl @json.FromJson for ImportSpecifier
+
+pub struct ImportSpecifierData {
+  imported : Expression
+  local_ : Identifier
+  importKind : ImportKind?
+}
+pub impl Eq for ImportSpecifierData
+pub impl Show for ImportSpecifierData
+pub impl ToJson for ImportSpecifierData
+pub impl @json.FromJson for ImportSpecifierData
+
+pub struct InterpreterDirective {
+  value : String
+}
+pub impl Eq for InterpreterDirective
+pub impl Show for InterpreterDirective
+pub impl ToJson for InterpreterDirective
+pub impl @json.FromJson for InterpreterDirective
+
+pub struct JSXElement {
+}
+pub impl Eq for JSXElement
+pub impl Show for JSXElement
+pub impl ToJson for JSXElement
+pub impl @json.FromJson for JSXElement
+
+pub struct JSXFragment {
+}
+pub impl Eq for JSXFragment
+pub impl Show for JSXFragment
+pub impl ToJson for JSXFragment
+pub impl @json.FromJson for JSXFragment
+
+pub struct LabeledStatement {
+  label : Identifier
+  body : Statement
+}
+pub impl Eq for LabeledStatement
+pub impl Show for LabeledStatement
+pub impl ToJson for LabeledStatement
+pub impl @json.FromJson for LabeledStatement
+
+pub(all) enum Literal {
+  RegExpLiteral(RegExpLiteral)
+  NullLiteral(NullLiteral)
+  StringLiteral(StringLiteral)
+  BooleanLiteral(BooleanLiteral)
+  NumericLiteral(NumericLiteral)
+  BigIntLiteral(BigIntLiteral)
+}
+pub impl Eq for Literal
+pub impl Show for Literal
+pub impl ToJson for Literal
+pub impl @json.FromJson for Literal
+
+pub struct LogicalExpression {
+  operator : LogicalOperator
+  left : Expression
+  right : Expression
+}
+pub impl Eq for LogicalExpression
+pub impl Show for LogicalExpression
+pub impl ToJson for LogicalExpression
+pub impl @json.FromJson for LogicalExpression
+
+pub(all) enum LogicalOperator {
+  LogicalOr
+  LogicalAnd
+}
+pub impl Eq for LogicalOperator
+pub impl Show for LogicalOperator
+pub impl ToJson for LogicalOperator
+pub impl @json.FromJson for LogicalOperator
+
+pub struct MemberExpression {
+  object : Expression
+  property : Expression
+  computed : Bool
+  optional : Bool?
+}
+pub impl Eq for MemberExpression
+pub impl Show for MemberExpression
+pub impl ToJson for MemberExpression
+pub impl @json.FromJson for MemberExpression
+
+pub struct MetaProperty {
+  meta : Identifier
+  property : Identifier
+}
+pub impl Eq for MetaProperty
+pub impl Show for MetaProperty
+pub impl ToJson for MetaProperty
+pub impl @json.FromJson for MetaProperty
+
+pub struct MethodBase {
+  kind : MethodKind
+  params : Array[Pattern]
+  body : BlockStatement
+  generator : Bool
+  async_ : Bool
+}
+pub impl Eq for MethodBase
+pub impl Show for MethodBase
+pub impl ToJson for MethodBase
+pub impl @json.FromJson for MethodBase
+
+pub(all) enum MethodKind {
+  Constructor
+  Method
+  Get
+  Set
+}
+pub impl Eq for MethodKind
+pub impl Show for MethodKind
+pub impl ToJson for MethodKind
+pub impl @json.FromJson for MethodKind
+
+pub(all) enum MethodLike {
+  ObjectMethod(ObjectMethod)
+  ClassMethod(ClassMethod)
+  ClassPrivateMethod(ClassPrivateMethod)
+  TSDeclareMethod(TSDeclareMethod)
+}
+pub impl Eq for MethodLike
+pub impl Show for MethodLike
+pub impl ToJson for MethodLike
+pub impl @json.FromJson for MethodLike
+
+pub(all) enum ModuleDeclaration {
+  AnyImport(AnyImport)
+  AnyExport(AnyExport)
+}
+pub impl Eq for ModuleDeclaration
+pub impl Show for ModuleDeclaration
+pub impl ToJson for ModuleDeclaration
+pub impl @json.FromJson for ModuleDeclaration
+
+pub struct ModuleExpression {
+  body : Program
+}
+pub impl Eq for ModuleExpression
+pub impl Show for ModuleExpression
+pub impl ToJson for ModuleExpression
+pub impl @json.FromJson for ModuleExpression
+
+pub struct ModuleSpecifier {
+  local_ : Identifier
+}
+pub impl Eq for ModuleSpecifier
+pub impl Show for ModuleSpecifier
+pub impl ToJson for ModuleSpecifier
+pub impl @json.FromJson for ModuleSpecifier
+
+pub struct NewExpression {
+  callee : Expression
+  arguments : Array[Expression]
+  optional : Bool
+  typeArguments : TypeParameterInstantiation?
+}
+pub impl Eq for NewExpression
+pub impl Show for NewExpression
+pub impl ToJson for NewExpression
+pub impl @json.FromJson for NewExpression
+
+pub struct NodeBase {
+  start : Int
+  end : Int
+  loc : SourceLocation
+  range : Array[Int]?
+  leadingComments : Array[Comment]?
+  trailingComments : Array[Comment]?
+  innerComments : Array[Comment]?
+  extra : Map[String, Json]?
+}
+pub impl Eq for NodeBase
+pub impl Show for NodeBase
+pub impl ToJson for NodeBase
+pub impl @json.FromJson for NodeBase
+
+pub(all) enum NodeType {
+  Expression(Expression)
+  Statement(Statement)
+  Pattern(Pattern)
+  Declaration(Declaration)
 }
 pub impl Eq for NodeType
 pub impl Show for NodeType
 pub impl ToJson for NodeType
 pub impl @json.FromJson for NodeType
 
-pub struct Parser {
-  lexer : @lexer.Lexer
-  mut current : Token
-  mut peek : Token
+pub(all) enum NormalFunction {
+  FunctionDeclaration(FunctionDeclaration)
+  FunctionExpression(FunctionExpression)
 }
-pub fn Parser::new(String) -> Self
+pub impl Eq for NormalFunction
+pub impl Show for NormalFunction
+pub impl ToJson for NormalFunction
+pub impl @json.FromJson for NormalFunction
 
-type Position
+pub struct NullLiteral {
+}
+pub impl Eq for NullLiteral
+pub impl Show for NullLiteral
+pub impl ToJson for NullLiteral
+pub impl @json.FromJson for NullLiteral
+
+pub struct NumericLiteral {
+  value : Double
+}
+pub impl Eq for NumericLiteral
+pub impl Show for NumericLiteral
+pub impl ToJson for NumericLiteral
+pub impl @json.FromJson for NumericLiteral
+
+pub struct ObjectExpression {
+  properties : Array[ObjectMember]
+}
+pub impl Eq for ObjectExpression
+pub impl Show for ObjectExpression
+pub impl ToJson for ObjectExpression
+pub impl @json.FromJson for ObjectExpression
+
+pub(all) enum ObjectMember {
+  ObjectProperty(ObjectProperty)
+  ObjectMethod(ObjectMethod)
+  SpreadElement(SpreadElement)
+}
+pub impl Eq for ObjectMember
+pub impl Show for ObjectMember
+pub impl ToJson for ObjectMember
+pub impl @json.FromJson for ObjectMember
+
+pub struct ObjectMethod {
+  key : Expression
+  kind : MethodKind
+  static_ : Bool
+  computed : Bool
+  params : Array[Pattern]
+  body : BlockStatement
+  generator : Bool
+  async_ : Bool
+  value : Expression
+  decorators : Array[Decorator]
+  typeParameters : TypeParameterDeclaration?
+  variance : FlowVariance?
+}
+pub impl Eq for ObjectMethod
+pub impl Show for ObjectMethod
+pub impl ToJson for ObjectMethod
+pub impl @json.FromJson for ObjectMethod
+
+pub(all) enum ObjectOrClassMember {
+  ClassMethod(ClassMethod)
+  ClassProperty(ClassProperty)
+  ObjectMember(ObjectMember)
+}
+pub impl Eq for ObjectOrClassMember
+pub impl Show for ObjectOrClassMember
+pub impl ToJson for ObjectOrClassMember
+pub impl @json.FromJson for ObjectOrClassMember
+
+pub struct ObjectPattern {
+  properties : Array[AssignmentProperty]
+  optional : Bool?
+  typeAnnotation : TypeAnnotation?
+}
+pub impl Eq for ObjectPattern
+pub impl Show for ObjectPattern
+pub impl ToJson for ObjectPattern
+pub impl @json.FromJson for ObjectPattern
+
+pub struct ObjectProperty {
+  key : Expression
+  value : Expression
+  shorthand : Bool
+  computed : Bool
+  decorators : Array[Decorator]
+}
+pub impl Eq for ObjectProperty
+pub impl Show for ObjectProperty
+pub impl ToJson for ObjectProperty
+pub impl @json.FromJson for ObjectProperty
+
+pub struct OptClassDeclaration {
+  id : Identifier?
+  superClass : Expression?
+  body : ClassBody
+  decorators : Array[Decorator]
+  typeParameters : TypeParameterDeclaration?
+  superTypeArguments : TypeParameterInstantiation?
+  abstract_ : Bool
+  implements : Array[TSClassImplements]?
+  declare_ : Bool
+}
+pub impl Eq for OptClassDeclaration
+pub impl Show for OptClassDeclaration
+pub impl ToJson for OptClassDeclaration
+pub impl @json.FromJson for OptClassDeclaration
+
+pub struct OptFunctionDeclaration {
+  id : Identifier?
+  params : Array[Pattern]
+  body : BlockStatement
+  generator : Bool
+  async_ : Bool
+  expression : Bool
+  typeParameters : TypeParameterDeclaration?
+  returnType : TypeAnnotation?
+  declare_ : Bool
+}
+pub impl Eq for OptFunctionDeclaration
+pub impl Show for OptFunctionDeclaration
+pub impl ToJson for OptFunctionDeclaration
+pub impl @json.FromJson for OptFunctionDeclaration
+
+pub struct OptTSDeclareFunction {
+  id : Identifier?
+  params : Array[Pattern]
+  returnType : TypeAnnotation?
+  generator : Bool
+  async_ : Bool
+  typeParameters : TypeParameterDeclaration?
+  declare_ : Bool
+}
+pub impl Eq for OptTSDeclareFunction
+pub impl Show for OptTSDeclareFunction
+pub impl ToJson for OptTSDeclareFunction
+pub impl @json.FromJson for OptTSDeclareFunction
+
+pub struct OptionalCallExpression {
+  callee : Expression
+  arguments : Array[Expression]
+  optional : Bool
+  typeArguments : TypeParameterInstantiation?
+}
+pub impl Eq for OptionalCallExpression
+pub impl Show for OptionalCallExpression
+pub impl ToJson for OptionalCallExpression
+pub impl @json.FromJson for OptionalCallExpression
+
+pub struct OptionalMemberExpression {
+  object : Expression
+  property : Expression
+  computed : Bool
+  optional : Bool
+}
+pub impl Eq for OptionalMemberExpression
+pub impl Show for OptionalMemberExpression
+pub impl ToJson for OptionalMemberExpression
+pub impl @json.FromJson for OptionalMemberExpression
+
+pub struct ParenthesizedExpression {
+}
+pub impl Compare for ParenthesizedExpression
+pub impl Eq for ParenthesizedExpression
+pub impl Hash for ParenthesizedExpression
+pub impl Show for ParenthesizedExpression
+pub impl ToJson for ParenthesizedExpression
+pub impl @json.FromJson for ParenthesizedExpression
+
+pub struct ParseClassMemberState {
+  hadConstructor : Bool
+  hadSuperClass : Bool
+}
+pub impl Eq for ParseClassMemberState
+pub impl Show for ParseClassMemberState
+pub impl ToJson for ParseClassMemberState
+pub impl @json.FromJson for ParseClassMemberState
+
+pub struct ParseError {
+  message : String
+  loc : SourceLocation
+}
+pub impl Eq for ParseError
+pub impl Show for ParseError
+pub impl ToJson for ParseError
+pub impl @json.FromJson for ParseError
+
+pub struct ParseSubscriptState {
+  optionalChainMember : Bool
+  maybeAsyncArrow : Bool
+  stop : Bool
+}
+pub impl Eq for ParseSubscriptState
+pub impl Show for ParseSubscriptState
+pub impl ToJson for ParseSubscriptState
+pub impl @json.FromJson for ParseSubscriptState
+
+pub(all) struct Parser {
+  tokens : Array[@lexer.LexToken]
+  mut pos : Int
+}
+pub fn Parser::new(Array[@lexer.LexToken]) -> Self
+pub fn Parser::parse(Self) -> Program
+pub fn Parser::parse_program(Self) -> Program
+
+pub(all) enum Pattern {
+  Identifier(Identifier)
+  ObjectPattern(ObjectPattern)
+  ArrayPattern(ArrayPattern)
+  RestElement(RestElement)
+  AssignmentPattern(AssignmentPattern)
+  VoidPattern(VoidPattern)
+}
+pub impl Eq for Pattern
+pub impl Show for Pattern
+pub impl ToJson for Pattern
+pub impl @json.FromJson for Pattern
+
+pub struct PatternBase {
+  optional : Bool?
+  typeAnnotation : TypeAnnotation?
+}
+pub impl Eq for PatternBase
+pub impl Show for PatternBase
+pub impl ToJson for PatternBase
+pub impl @json.FromJson for PatternBase
+
+pub struct Placeholder {
+  name : Identifier
+  expectedNode : String
+}
+pub impl Eq for Placeholder
+pub impl Show for Placeholder
+pub impl ToJson for Placeholder
+pub impl @json.FromJson for Placeholder
+
+pub struct Position {
+  line : Int
+  column : Int
+}
 pub impl Eq for Position
 pub impl Show for Position
 pub impl ToJson for Position
 pub impl @json.FromJson for Position
 
-type SourceLocation
+pub struct PrivateName {
+  id : Identifier
+}
+pub impl Eq for PrivateName
+pub impl Show for PrivateName
+pub impl ToJson for PrivateName
+pub impl @json.FromJson for PrivateName
+
+pub struct Program {
+  sourceType : SourceType
+  body : Array[Statement]
+  directives : Array[Directive]
+  interpreter : InterpreterDirective?
+}
+pub impl Eq for Program
+pub impl Show for Program
+pub impl ToJson for Program
+pub impl @json.FromJson for Program
+
+pub(all) enum RegExpFlag {
+  G
+  I
+  M
+  S
+  U
+  Y
+  V
+}
+pub impl Eq for RegExpFlag
+pub impl Show for RegExpFlag
+pub impl ToJson for RegExpFlag
+pub impl @json.FromJson for RegExpFlag
+
+pub(all) struct RegExpLiteral {
+  pattern : String
+  flags : Array[RegExpFlag]
+}
+pub impl Eq for RegExpLiteral
+pub impl Show for RegExpLiteral
+pub impl ToJson for RegExpLiteral
+pub impl @json.FromJson for RegExpLiteral
+
+pub struct RestElement {
+  argument : Pattern
+  optional : Bool?
+  typeAnnotation : TypeAnnotation?
+}
+pub impl Eq for RestElement
+pub impl Show for RestElement
+pub impl ToJson for RestElement
+pub impl @json.FromJson for RestElement
+
+pub struct ReturnStatement {
+  argument : Expression?
+}
+pub impl Eq for ReturnStatement
+pub impl Show for ReturnStatement
+pub impl ToJson for ReturnStatement
+pub impl @json.FromJson for ReturnStatement
+
+pub struct SequenceExpression {
+  expressions : Array[Expression]
+}
+pub impl Eq for SequenceExpression
+pub impl Show for SequenceExpression
+pub impl ToJson for SequenceExpression
+pub impl @json.FromJson for SequenceExpression
+
+pub struct SourceLocation {
+  start : Position
+  end : Position
+  filename : String?
+}
 pub impl Eq for SourceLocation
 pub impl Show for SourceLocation
 pub impl ToJson for SourceLocation
 pub impl @json.FromJson for SourceLocation
 
-pub enum SourceType {
+pub(all) enum SourceType {
   Script
   Module
 }
@@ -97,23 +1881,1207 @@ pub impl Show for SourceType
 pub impl ToJson for SourceType
 pub impl @json.FromJson for SourceType
 
-type Token
+pub struct SpreadElement {
+  argument : Expression
+}
+pub impl Eq for SpreadElement
+pub impl Show for SpreadElement
+pub impl ToJson for SpreadElement
+pub impl @json.FromJson for SpreadElement
+
+pub(all) enum Statement {
+  BlockStatement(BlockStatement)
+  BreakStatement(BreakStatement)
+  ContinueStatement(ContinueStatement)
+  DebuggerStatement(DebuggerStatement)
+  DoWhileStatement(DoWhileStatement)
+  EmptyStatement(EmptyStatement)
+  ExpressionStatement(ExpressionStatement)
+  ForInStatement(ForInStatement)
+  ForStatement(ForStatement)
+  FunctionDeclaration(FunctionDeclaration)
+  IfStatement(IfStatement)
+  LabeledStatement(LabeledStatement)
+  ReturnStatement(ReturnStatement)
+  SwitchStatement(SwitchStatement)
+  ThrowStatement(ThrowStatement)
+  TryStatement(TryStatement)
+  VariableDeclaration(VariableDeclaration)
+  WhileStatement(WhileStatement)
+  WithStatement(WithStatement)
+  ClassDeclaration(ClassDeclaration)
+  ExportAllDeclaration(ExportAllDeclaration)
+  ExportDefaultDeclaration(ExportDefaultDeclaration)
+  ExportNamedDeclaration(ExportNamedDeclaration)
+  ForOfStatement(ForOfStatement)
+  ImportDeclaration(ImportDeclaration)
+  FlowDeclareClass(FlowDeclareClass)
+  FlowDeclareFunction(FlowDeclareFunction)
+  FlowDeclareInterface(FlowDeclareInterface)
+  FlowDeclareModule(FlowDeclareModule)
+  FlowDeclareModuleExports(FlowDeclareModuleExports)
+  FlowDeclareTypeAlias(FlowDeclareTypeAlias)
+  FlowDeclareOpaqueType(FlowDeclareOpaqueType)
+  FlowDeclareVariable(FlowDeclareVariable)
+  FlowDeclareExportDeclaration(FlowDeclareExportDeclaration)
+  FlowEnumDeclaration(FlowEnumDeclaration)
+  FlowInterface(FlowInterface)
+  FlowOpaqueType(FlowOpaqueType)
+  FlowTypeAlias(FlowTypeAlias)
+  TSDeclareFunction(TSDeclareFunction)
+  TsInterfaceDeclaration(TsInterfaceDeclaration)
+  TsTypeAliasDeclaration(TsTypeAliasDeclaration)
+  TsEnumDeclaration(TsEnumDeclaration)
+  TsModuleDeclaration(TsModuleDeclaration)
+  TsImportEqualsDeclaration(TsImportEqualsDeclaration)
+  TsExportAssignment(TsExportAssignment)
+  TsNamespaceExportDeclaration(TsNamespaceExportDeclaration)
+}
+pub impl Eq for Statement
+pub impl Show for Statement
+pub impl ToJson for Statement
+pub impl @json.FromJson for Statement
+
+pub struct StaticBlock {
+  body : Array[Statement]
+}
+pub impl Eq for StaticBlock
+pub impl Show for StaticBlock
+pub impl ToJson for StaticBlock
+pub impl @json.FromJson for StaticBlock
+
+pub struct StringLiteral {
+  value : String
+}
+pub impl Eq for StringLiteral
+pub impl Show for StringLiteral
+pub impl ToJson for StringLiteral
+pub impl @json.FromJson for StringLiteral
+
+pub struct Super {
+}
+pub impl Eq for Super
+pub impl Show for Super
+pub impl ToJson for Super
+pub impl @json.FromJson for Super
+
+pub struct SwitchCase {
+  test_ : Expression?
+  consequent : Array[Statement]
+}
+pub impl Eq for SwitchCase
+pub impl Show for SwitchCase
+pub impl ToJson for SwitchCase
+pub impl @json.FromJson for SwitchCase
+
+pub struct SwitchStatement {
+  discriminant : Expression
+  cases : Array[SwitchCase]
+}
+pub impl Eq for SwitchStatement
+pub impl Show for SwitchStatement
+pub impl ToJson for SwitchStatement
+pub impl @json.FromJson for SwitchStatement
+
+pub struct TSClassImplements {
+  expression : Expression
+  typeArguments : TsTypeParameterInstantiation?
+}
+pub impl Eq for TSClassImplements
+pub impl Show for TSClassImplements
+pub impl ToJson for TSClassImplements
+pub impl @json.FromJson for TSClassImplements
+
+pub struct TSDeclareFunction {
+  id : Identifier
+  params : Array[Pattern]
+  returnType : TypeAnnotation?
+  generator : Bool
+  async_ : Bool
+  typeParameters : TypeParameterDeclaration?
+  declare_ : Bool
+}
+pub impl Eq for TSDeclareFunction
+pub impl Show for TSDeclareFunction
+pub impl ToJson for TSDeclareFunction
+pub impl @json.FromJson for TSDeclareFunction
+
+pub struct TSDeclareMethod {
+  key : Expression
+  kind : MethodKind
+  static_ : Bool
+  computed : Bool
+  params : Array[Pattern]
+  returnType : TypeAnnotation?
+  generator : Bool
+  async_ : Bool
+  typeParameters : TypeParameterDeclaration?
+  accessibility : Accessibility?
+  override_ : Bool?
+  optional : Bool?
+  abstract_ : Bool?
+  decorators : Array[Decorator]
+}
+pub impl Eq for TSDeclareMethod
+pub impl Show for TSDeclareMethod
+pub impl ToJson for TSDeclareMethod
+pub impl @json.FromJson for TSDeclareMethod
+
+pub struct TSInterfaceBody {
+  body : Array[TsTypeElement]
+}
+pub impl Eq for TSInterfaceBody
+pub impl Show for TSInterfaceBody
+pub impl ToJson for TSInterfaceBody
+pub impl @json.FromJson for TSInterfaceBody
+
+pub struct TSInterfaceHeritage {
+  expression : Expression
+  typeArguments : TsTypeParameterInstantiation?
+}
+pub impl Eq for TSInterfaceHeritage
+pub impl Show for TSInterfaceHeritage
+pub impl ToJson for TSInterfaceHeritage
+pub impl @json.FromJson for TSInterfaceHeritage
+
+pub(all) enum TSParameter {
+  Identifier(Identifier)
+  AssignmentPattern(AssignmentPattern)
+}
+pub impl Eq for TSParameter
+pub impl Show for TSParameter
+pub impl ToJson for TSParameter
+pub impl @json.FromJson for TSParameter
+
+pub struct TSParameterProperty {
+  accessibility : Accessibility?
+  readonly_ : Bool?
+  override_ : Bool?
+  parameter : TSParameter
+  static_ : Bool
+}
+pub impl Eq for TSParameterProperty
+pub impl Show for TSParameterProperty
+pub impl ToJson for TSParameterProperty
+pub impl @json.FromJson for TSParameterProperty
+
+pub struct TaggedTemplateExpression {
+  tag : Expression
+  quasi : TemplateLiteral
+  typeArguments : TypeParameterInstantiation?
+}
+pub impl Eq for TaggedTemplateExpression
+pub impl Show for TaggedTemplateExpression
+pub impl ToJson for TaggedTemplateExpression
+pub impl @json.FromJson for TaggedTemplateExpression
+
+pub struct TemplateElement {
+  tail : Bool
+  value : TemplateElementValue
+}
+pub impl Eq for TemplateElement
+pub impl Show for TemplateElement
+pub impl ToJson for TemplateElement
+pub impl @json.FromJson for TemplateElement
+
+pub struct TemplateElementValue {
+  cooked : String
+  raw : String
+}
+pub impl Eq for TemplateElementValue
+pub impl Show for TemplateElementValue
+pub impl ToJson for TemplateElementValue
+pub impl @json.FromJson for TemplateElementValue
+
+pub struct TemplateLiteral {
+  quasis : Array[TemplateElement]
+  expressions : Array[Expression]
+}
+pub impl Eq for TemplateLiteral
+pub impl Show for TemplateLiteral
+pub impl ToJson for TemplateLiteral
+pub impl @json.FromJson for TemplateLiteral
+
+pub struct ThisExpression {
+}
+pub impl Eq for ThisExpression
+pub impl Show for ThisExpression
+pub impl ToJson for ThisExpression
+pub impl @json.FromJson for ThisExpression
+
+pub struct ThrowStatement {
+  argument : Expression
+}
+pub impl Eq for ThrowStatement
+pub impl Show for ThrowStatement
+pub impl ToJson for ThrowStatement
+pub impl @json.FromJson for ThrowStatement
+
+pub struct Token {
+  tokenType : TokenType
+  value : String
+  start : Int
+  end : Int
+  loc : SourceLocation
+}
 pub impl Eq for Token
 pub impl Show for Token
+pub impl ToJson for Token
+pub impl @json.FromJson for Token
 
-type TokenKind
-pub impl Eq for TokenKind
-pub impl Show for TokenKind
+pub(all) enum TokenType {
+  Identifier
+  StringLiteral
+  NumericLiteral
+}
+pub impl Eq for TokenType
+pub impl Show for TokenType
+pub impl ToJson for TokenType
+pub impl @json.FromJson for TokenType
 
-pub enum VariableKind {
+pub struct TopicReference {
+}
+pub impl Eq for TopicReference
+pub impl Show for TopicReference
+pub impl ToJson for TopicReference
+pub impl @json.FromJson for TopicReference
+
+pub struct TryStatement {
+  block : BlockStatement
+  handler : CatchClause?
+  finalizer : BlockStatement?
+}
+pub impl Eq for TryStatement
+pub impl Show for TryStatement
+pub impl ToJson for TryStatement
+pub impl @json.FromJson for TryStatement
+
+pub struct TsArrayType {
+  elementType : TsType
+}
+pub impl Eq for TsArrayType
+pub impl Show for TsArrayType
+pub impl ToJson for TsArrayType
+pub impl @json.FromJson for TsArrayType
+
+pub struct TsAsExpression {
+  expression : Expression
+  typeAnnotation : TsType
+}
+pub impl Eq for TsAsExpression
+pub impl Show for TsAsExpression
+pub impl ToJson for TsAsExpression
+pub impl @json.FromJson for TsAsExpression
+
+pub struct TsCallSignatureDeclaration {
+  params : Array[TsFunctionParam]
+  returnType : TsTypeAnnotation?
+  typeParameters : TsTypeParameterDeclaration?
+}
+pub impl Eq for TsCallSignatureDeclaration
+pub impl Show for TsCallSignatureDeclaration
+pub impl ToJson for TsCallSignatureDeclaration
+pub impl @json.FromJson for TsCallSignatureDeclaration
+
+pub struct TsConditionalType {
+  checkType : TsType
+  extendsType : TsType
+  trueType : TsType
+  falseType : TsType
+}
+pub impl Eq for TsConditionalType
+pub impl Show for TsConditionalType
+pub impl ToJson for TsConditionalType
+pub impl @json.FromJson for TsConditionalType
+
+pub struct TsConstructSignatureDeclaration {
+  params : Array[TsFunctionParam]
+  returnType : TsTypeAnnotation?
+  typeParameters : TsTypeParameterDeclaration?
+}
+pub impl Eq for TsConstructSignatureDeclaration
+pub impl Show for TsConstructSignatureDeclaration
+pub impl ToJson for TsConstructSignatureDeclaration
+pub impl @json.FromJson for TsConstructSignatureDeclaration
+
+pub struct TsConstructorType {
+  params : Array[TsFunctionParam]
+  returnType : TsTypeAnnotation
+  typeParameters : TsTypeParameterDeclaration?
+  abstract_ : Bool?
+}
+pub impl Eq for TsConstructorType
+pub impl Show for TsConstructorType
+pub impl ToJson for TsConstructorType
+pub impl @json.FromJson for TsConstructorType
+
+pub(all) enum TsEntityName {
+  Identifier(Identifier)
+  ThisExpression(ThisExpression)
+  TsQualifiedName(TsQualifiedName)
+}
+pub impl Eq for TsEntityName
+pub impl Show for TsEntityName
+pub impl ToJson for TsEntityName
+pub impl @json.FromJson for TsEntityName
+
+pub struct TsEnumBody {
+  members : Array[TsEnumMember]
+}
+pub impl Eq for TsEnumBody
+pub impl Show for TsEnumBody
+pub impl ToJson for TsEnumBody
+pub impl @json.FromJson for TsEnumBody
+
+pub struct TsEnumDeclaration {
+  const_ : Bool?
+  id : Identifier
+  body : TsEnumBody
+  declare_ : Bool
+}
+pub impl Eq for TsEnumDeclaration
+pub impl Show for TsEnumDeclaration
+pub impl ToJson for TsEnumDeclaration
+pub impl @json.FromJson for TsEnumDeclaration
+
+pub struct TsEnumMember {
+  id : Expression
+  initializer : Expression?
+  computed : Bool
+}
+pub impl Eq for TsEnumMember
+pub impl Show for TsEnumMember
+pub impl ToJson for TsEnumMember
+pub impl @json.FromJson for TsEnumMember
+
+pub struct TsExportAssignment {
+  expression : Expression
+}
+pub impl Eq for TsExportAssignment
+pub impl Show for TsExportAssignment
+pub impl ToJson for TsExportAssignment
+pub impl @json.FromJson for TsExportAssignment
+
+pub struct TsExternalModuleReference {
+  expression : String
+}
+pub impl Eq for TsExternalModuleReference
+pub impl Show for TsExternalModuleReference
+pub impl ToJson for TsExternalModuleReference
+pub impl @json.FromJson for TsExternalModuleReference
+
+pub(all) enum TsFunctionParam {
+  Identifier(Identifier)
+  RestElement(RestElement)
+  ObjectPattern(ObjectPattern)
+  ArrayPattern(ArrayPattern)
+  VoidPattern(VoidPattern)
+}
+pub impl Eq for TsFunctionParam
+pub impl Show for TsFunctionParam
+pub impl ToJson for TsFunctionParam
+pub impl @json.FromJson for TsFunctionParam
+
+pub struct TsFunctionType {
+  params : Array[TsFunctionParam]
+  returnType : TsTypeAnnotation
+  typeParameters : TsTypeParameterDeclaration?
+}
+pub impl Eq for TsFunctionType
+pub impl Show for TsFunctionType
+pub impl ToJson for TsFunctionType
+pub impl @json.FromJson for TsFunctionType
+
+pub struct TsImportEqualsDeclaration {
+  id : Identifier
+  importKind : ImportKind
+  moduleReference : TsModuleReference
+}
+pub impl Eq for TsImportEqualsDeclaration
+pub impl Show for TsImportEqualsDeclaration
+pub impl ToJson for TsImportEqualsDeclaration
+pub impl @json.FromJson for TsImportEqualsDeclaration
+
+pub struct TsImportType {
+  source : String
+  qualifier : TsEntityName?
+  typeArguments : TsTypeParameterInstantiation?
+  options : Expression?
+}
+pub impl Eq for TsImportType
+pub impl Show for TsImportType
+pub impl ToJson for TsImportType
+pub impl @json.FromJson for TsImportType
+
+pub struct TsIndexSignature {
+  parameters : Array[TsFunctionParam]
+  readonly_ : Bool?
+  static_ : Bool?
+  typeAnnotation : TsTypeAnnotation?
+  accessibility : Accessibility?
+}
+pub impl Eq for TsIndexSignature
+pub impl Show for TsIndexSignature
+pub impl ToJson for TsIndexSignature
+pub impl @json.FromJson for TsIndexSignature
+
+pub struct TsIndexSignatureBase {
+  parameters : Array[TsFunctionParam]
+  returnType : TsTypeAnnotation?
+  typeAnnotation : TsTypeAnnotation?
+}
+pub impl Eq for TsIndexSignatureBase
+pub impl Show for TsIndexSignatureBase
+pub impl ToJson for TsIndexSignatureBase
+pub impl @json.FromJson for TsIndexSignatureBase
+
+pub struct TsIndexedAccessType {
+  objectType : TsType
+  indexType : TsType
+}
+pub impl Eq for TsIndexedAccessType
+pub impl Show for TsIndexedAccessType
+pub impl ToJson for TsIndexedAccessType
+pub impl @json.FromJson for TsIndexedAccessType
+
+pub struct TsInferType {
+  typeParameter : TsTypeParameter
+}
+pub impl Eq for TsInferType
+pub impl Show for TsInferType
+pub impl ToJson for TsInferType
+pub impl @json.FromJson for TsInferType
+
+pub struct TsInstantiationExpression {
+  expression : Expression
+  typeArguments : TsTypeParameterInstantiation?
+}
+pub impl Eq for TsInstantiationExpression
+pub impl Show for TsInstantiationExpression
+pub impl ToJson for TsInstantiationExpression
+pub impl @json.FromJson for TsInstantiationExpression
+
+pub struct TsInterfaceDeclaration {
+  id : Identifier?
+  typeParameters : TsTypeParameterDeclaration?
+  extends_ : Array[TSInterfaceHeritage]?
+  body : TSInterfaceBody
+  declare_ : Bool
+}
+pub impl Eq for TsInterfaceDeclaration
+pub impl Show for TsInterfaceDeclaration
+pub impl ToJson for TsInterfaceDeclaration
+pub impl @json.FromJson for TsInterfaceDeclaration
+
+pub struct TsIntersectionType {
+  types : Array[TsType]
+}
+pub impl Eq for TsIntersectionType
+pub impl Show for TsIntersectionType
+pub impl ToJson for TsIntersectionType
+pub impl @json.FromJson for TsIntersectionType
+
+pub(all) enum TsKeywordType {
+  TSAnyKeyword
+  TSUnknownKeyword
+  TSNumberKeyword
+  TSObjectKeyword
+  TSBooleanKeyword
+  TSBigIntKeyword
+  TSStringKeyword
+  TSSymbolKeyword
+  TSVoidKeyword
+  TSUndefinedKeyword
+  TSNullKeyword
+  TSNeverKeyword
+  TSIntrinsicKeyword
+}
+pub impl Eq for TsKeywordType
+pub impl Show for TsKeywordType
+pub impl ToJson for TsKeywordType
+pub impl @json.FromJson for TsKeywordType
+
+pub(all) enum TsLiteral {
+  NumericLiteral(Double)
+  StringLiteral(String)
+  BooleanLiteral(Bool)
+  TemplateLiteral(TemplateLiteral)
+  UnaryExpression(UnaryExpression)
+}
+pub impl Eq for TsLiteral
+pub impl Show for TsLiteral
+pub impl ToJson for TsLiteral
+pub impl @json.FromJson for TsLiteral
+
+pub struct TsLiteralType {
+  literal : TsLiteral
+}
+pub impl Eq for TsLiteralType
+pub impl Show for TsLiteralType
+pub impl ToJson for TsLiteralType
+pub impl @json.FromJson for TsLiteralType
+
+pub struct TsMappedType {
+  key : Identifier
+  constraint : TsType
+  readonly_ : TsReadonlyModifier?
+  optional : TsOptionalModifier?
+  typeAnnotation : TsType?
+  nameType : TsType?
+}
+pub impl Eq for TsMappedType
+pub impl Show for TsMappedType
+pub impl ToJson for TsMappedType
+pub impl @json.FromJson for TsMappedType
+
+pub struct TsMethodSignature {
+  key : Expression
+  computed : Bool
+  optional : Bool?
+  kind : MethodKind
+  params : Array[TsFunctionParam]
+  returnType : TsTypeAnnotation?
+  typeParameters : TsTypeParameterDeclaration?
+  accessibility : Accessibility?
+  readonly_ : Bool?
+  static_ : Bool?
+}
+pub impl Eq for TsMethodSignature
+pub impl Show for TsMethodSignature
+pub impl ToJson for TsMethodSignature
+pub impl @json.FromJson for TsMethodSignature
+
+pub struct TsModuleBlock {
+  body : Array[Statement]
+}
+pub impl Eq for TsModuleBlock
+pub impl Show for TsModuleBlock
+pub impl ToJson for TsModuleBlock
+pub impl @json.FromJson for TsModuleBlock
+
+pub struct TsModuleDeclaration {
+  kind : TsModuleKind
+  global : Bool?
+  id : TsModuleName
+  body : TsNamespaceBody
+  declare_ : Bool
+}
+pub impl Eq for TsModuleDeclaration
+pub impl Show for TsModuleDeclaration
+pub impl ToJson for TsModuleDeclaration
+pub impl @json.FromJson for TsModuleDeclaration
+
+pub(all) enum TsModuleKind {
+  Global
+  Module
+  Namespace
+}
+pub impl Eq for TsModuleKind
+pub impl Show for TsModuleKind
+pub impl ToJson for TsModuleKind
+pub impl @json.FromJson for TsModuleKind
+
+pub(all) enum TsModuleName {
+  TsEntityName(TsEntityName)
+  StringLiteral(String)
+}
+pub impl Eq for TsModuleName
+pub impl Show for TsModuleName
+pub impl ToJson for TsModuleName
+pub impl @json.FromJson for TsModuleName
+
+pub(all) enum TsModuleReference {
+  TsEntityName(TsEntityName)
+  TsExternalModuleReference(TsExternalModuleReference)
+}
+pub impl Eq for TsModuleReference
+pub impl Show for TsModuleReference
+pub impl ToJson for TsModuleReference
+pub impl @json.FromJson for TsModuleReference
+
+pub struct TsNamedTupleMember {
+  label : Identifier
+  optional : Bool
+  elementType : TsType
+}
+pub impl Eq for TsNamedTupleMember
+pub impl Show for TsNamedTupleMember
+pub impl ToJson for TsNamedTupleMember
+pub impl @json.FromJson for TsNamedTupleMember
+
+pub struct TsNamedTypeElementBase {
+  key : Expression
+  computed : Bool
+  optional : Bool?
+  accessibility : Accessibility?
+  readonly_ : Bool?
+  static_ : Bool?
+}
+pub impl Eq for TsNamedTypeElementBase
+pub impl Show for TsNamedTypeElementBase
+pub impl ToJson for TsNamedTypeElementBase
+pub impl @json.FromJson for TsNamedTypeElementBase
+
+pub(all) enum TsNamespaceBody {
+  TsModuleBlock(TsModuleBlock)
+  TsNamespaceDeclaration(TsNamespaceDeclaration)
+}
+pub impl Eq for TsNamespaceBody
+pub impl Show for TsNamespaceBody
+pub impl ToJson for TsNamespaceBody
+pub impl @json.FromJson for TsNamespaceBody
+
+pub struct TsNamespaceDeclaration {
+  id : Identifier
+  body : TsNamespaceBody
+  kind : TsModuleKind
+  global : Bool?
+  declare_ : Bool
+}
+pub impl Eq for TsNamespaceDeclaration
+pub impl Show for TsNamespaceDeclaration
+pub impl ToJson for TsNamespaceDeclaration
+pub impl @json.FromJson for TsNamespaceDeclaration
+
+pub struct TsNamespaceExportDeclaration {
+  id : Identifier
+}
+pub impl Eq for TsNamespaceExportDeclaration
+pub impl Show for TsNamespaceExportDeclaration
+pub impl ToJson for TsNamespaceExportDeclaration
+pub impl @json.FromJson for TsNamespaceExportDeclaration
+
+pub struct TsNonNullExpression {
+  expression : Expression
+}
+pub impl Eq for TsNonNullExpression
+pub impl Show for TsNonNullExpression
+pub impl ToJson for TsNonNullExpression
+pub impl @json.FromJson for TsNonNullExpression
+
+pub(all) enum TsOptionalModifier {
+  True
+  Plus
+  Star
+  Slash
+  Percent
+  Minus
+}
+pub impl Eq for TsOptionalModifier
+pub impl Show for TsOptionalModifier
+pub impl ToJson for TsOptionalModifier
+pub impl @json.FromJson for TsOptionalModifier
+
+pub struct TsOptionalType {
+  typeAnnotation : TsType
+}
+pub impl Eq for TsOptionalType
+pub impl Show for TsOptionalType
+pub impl ToJson for TsOptionalType
+pub impl @json.FromJson for TsOptionalType
+
+pub(all) enum TsParameterName {
+  Identifier(Identifier)
+  TsThisType(TsThisType)
+}
+pub impl Eq for TsParameterName
+pub impl Show for TsParameterName
+pub impl ToJson for TsParameterName
+pub impl @json.FromJson for TsParameterName
+
+pub struct TsParenthesizedType {
+  typeAnnotation : TsType
+}
+pub impl Eq for TsParenthesizedType
+pub impl Show for TsParenthesizedType
+pub impl ToJson for TsParenthesizedType
+pub impl @json.FromJson for TsParenthesizedType
+
+pub struct TsPropertySignature {
+  key : Expression
+  computed : Bool
+  optional : Bool?
+  typeAnnotation : TsTypeAnnotation?
+  accessibility : Accessibility?
+  readonly_ : Bool?
+  static_ : Bool?
+}
+pub impl Eq for TsPropertySignature
+pub impl Show for TsPropertySignature
+pub impl ToJson for TsPropertySignature
+pub impl @json.FromJson for TsPropertySignature
+
+pub struct TsQualifiedName {
+  left : TsEntityName
+  right : Identifier
+}
+pub impl Eq for TsQualifiedName
+pub impl Show for TsQualifiedName
+pub impl ToJson for TsQualifiedName
+pub impl @json.FromJson for TsQualifiedName
+
+pub(all) enum TsReadonlyModifier {
+  True
+  Plus
+  Star
+  Slash
+  Percent
+  Minus
+}
+pub impl Eq for TsReadonlyModifier
+pub impl Show for TsReadonlyModifier
+pub impl ToJson for TsReadonlyModifier
+pub impl @json.FromJson for TsReadonlyModifier
+
+pub struct TsRestType {
+  typeAnnotation : TsType
+}
+pub impl Eq for TsRestType
+pub impl Show for TsRestType
+pub impl ToJson for TsRestType
+pub impl @json.FromJson for TsRestType
+
+pub struct TsSatisfiesExpression {
+  expression : Expression
+  typeAnnotation : TsType
+}
+pub impl Eq for TsSatisfiesExpression
+pub impl Show for TsSatisfiesExpression
+pub impl ToJson for TsSatisfiesExpression
+pub impl @json.FromJson for TsSatisfiesExpression
+
+pub(all) enum TsSignatureDeclaration {
+  TsCallSignatureDeclaration(TsCallSignatureDeclaration)
+  TsConstructSignatureDeclaration(TsConstructSignatureDeclaration)
+  TsMethodSignature(TsMethodSignature)
+  TsFunctionType(TsFunctionType)
+  TsConstructorType(TsConstructorType)
+}
+pub impl Eq for TsSignatureDeclaration
+pub impl Show for TsSignatureDeclaration
+pub impl ToJson for TsSignatureDeclaration
+pub impl @json.FromJson for TsSignatureDeclaration
+
+pub struct TsSignatureDeclarationBase {
+  params : Array[TsFunctionParam]
+  returnType : TsTypeAnnotation?
+  typeParameters : TsTypeParameterDeclaration?
+  typeAnnotation : TsTypeAnnotation?
+}
+pub impl Eq for TsSignatureDeclarationBase
+pub impl Show for TsSignatureDeclarationBase
+pub impl ToJson for TsSignatureDeclarationBase
+pub impl @json.FromJson for TsSignatureDeclarationBase
+
+pub struct TsSignatureDeclarationOrIndexSignatureBase {
+  returnType : TsTypeAnnotation?
+  typeAnnotation : TsTypeAnnotation?
+}
+pub impl Eq for TsSignatureDeclarationOrIndexSignatureBase
+pub impl Show for TsSignatureDeclarationOrIndexSignatureBase
+pub impl ToJson for TsSignatureDeclarationOrIndexSignatureBase
+pub impl @json.FromJson for TsSignatureDeclarationOrIndexSignatureBase
+
+pub struct TsTemplateLiteralType {
+  quasis : Array[TemplateElement]
+  types : Array[TsType]
+}
+pub impl Eq for TsTemplateLiteralType
+pub impl Show for TsTemplateLiteralType
+pub impl ToJson for TsTemplateLiteralType
+pub impl @json.FromJson for TsTemplateLiteralType
+
+pub struct TsThisType {
+}
+pub impl Eq for TsThisType
+pub impl Show for TsThisType
+pub impl ToJson for TsThisType
+pub impl @json.FromJson for TsThisType
+
+pub(all) enum TsTupleElement {
+  TsType(TsType)
+  TsNamedTupleMember(TsNamedTupleMember)
+}
+pub impl Eq for TsTupleElement
+pub impl Show for TsTupleElement
+pub impl ToJson for TsTupleElement
+pub impl @json.FromJson for TsTupleElement
+
+pub struct TsTupleType {
+  elementTypes : Array[TsTupleElement]
+}
+pub impl Eq for TsTupleType
+pub impl Show for TsTupleType
+pub impl ToJson for TsTupleType
+pub impl @json.FromJson for TsTupleType
+
+pub(all) enum TsType {
+  TsKeywordType(TsKeywordType)
+  TsThisType
+  TsFunctionType(TsFunctionType)
+  TsTypeReference(TsTypeReference)
+  TsTypeQuery(TsTypeQuery)
+  TsTypeLiteral(TsTypeLiteral)
+  TsArrayType(TsArrayType)
+  TsTupleType(TsTupleType)
+  TsOptionalType(TsOptionalType)
+  TsRestType(TsRestType)
+  TsUnionType(TsUnionType)
+  TsIntersectionType(TsIntersectionType)
+  TsConditionalType(TsConditionalType)
+  TsInferType(TsInferType)
+  TsParenthesizedType(TsParenthesizedType)
+  TsTypeOperator(TsTypeOperator)
+  TsIndexedAccessType(TsIndexedAccessType)
+  TsMappedType(TsMappedType)
+  TsLiteralType(TsLiteralType)
+  TsTemplateLiteralType(TsTemplateLiteralType)
+  TsImportType(TsImportType)
+  TsTypePredicate(TsTypePredicate)
+}
+pub impl Eq for TsType
+pub impl Show for TsType
+pub impl ToJson for TsType
+pub impl @json.FromJson for TsType
+
+pub struct TsTypeAliasDeclaration {
+  id : Identifier
+  typeParameters : TsTypeParameterDeclaration?
+  typeAnnotation : TsType
+  declare_ : Bool
+}
+pub impl Eq for TsTypeAliasDeclaration
+pub impl Show for TsTypeAliasDeclaration
+pub impl ToJson for TsTypeAliasDeclaration
+pub impl @json.FromJson for TsTypeAliasDeclaration
+
+pub struct TsTypeAnnotation {
+  typeAnnotation : TsType
+}
+pub impl Eq for TsTypeAnnotation
+pub impl Show for TsTypeAnnotation
+pub impl ToJson for TsTypeAnnotation
+pub impl @json.FromJson for TsTypeAnnotation
+
+pub struct TsTypeAssertion {
+  expression : Expression
+  typeAnnotation : TsType
+}
+pub impl Eq for TsTypeAssertion
+pub impl Show for TsTypeAssertion
+pub impl ToJson for TsTypeAssertion
+pub impl @json.FromJson for TsTypeAssertion
+
+pub struct TsTypeCastExpression {
+  expression : Expression
+  typeAnnotation : TsTypeAnnotation
+}
+pub impl Eq for TsTypeCastExpression
+pub impl Show for TsTypeCastExpression
+pub impl ToJson for TsTypeCastExpression
+pub impl @json.FromJson for TsTypeCastExpression
+
+pub(all) enum TsTypeElement {
+  TsCallSignatureDeclaration(TsCallSignatureDeclaration)
+  TsConstructSignatureDeclaration(TsConstructSignatureDeclaration)
+  TsPropertySignature(TsPropertySignature)
+  TsMethodSignature(TsMethodSignature)
+  TsIndexSignature(TsIndexSignature)
+}
+pub impl Eq for TsTypeElement
+pub impl Show for TsTypeElement
+pub impl ToJson for TsTypeElement
+pub impl @json.FromJson for TsTypeElement
+
+pub struct TsTypeLiteral {
+  members : Array[TsTypeElement]
+}
+pub impl Eq for TsTypeLiteral
+pub impl Show for TsTypeLiteral
+pub impl ToJson for TsTypeLiteral
+pub impl @json.FromJson for TsTypeLiteral
+
+pub struct TsTypeOperator {
+  operator : TsTypeOperatorType
+  typeAnnotation : TsType
+}
+pub impl Eq for TsTypeOperator
+pub impl Show for TsTypeOperator
+pub impl ToJson for TsTypeOperator
+pub impl @json.FromJson for TsTypeOperator
+
+pub(all) enum TsTypeOperatorType {
+  Keyof
+  Unique
+  Readonly
+}
+pub impl Eq for TsTypeOperatorType
+pub impl Show for TsTypeOperatorType
+pub impl ToJson for TsTypeOperatorType
+pub impl @json.FromJson for TsTypeOperatorType
+
+pub struct TsTypeParameter {
+  name : Identifier
+  in_ : Bool?
+  out : Bool?
+  const_ : Bool?
+  constraint : TsType?
+  default : TsType?
+}
+pub impl Eq for TsTypeParameter
+pub impl Show for TsTypeParameter
+pub impl ToJson for TsTypeParameter
+pub impl @json.FromJson for TsTypeParameter
+
+pub struct TsTypeParameterDeclaration {
+  params : Array[TsTypeParameter]
+}
+pub impl Eq for TsTypeParameterDeclaration
+pub impl Show for TsTypeParameterDeclaration
+pub impl ToJson for TsTypeParameterDeclaration
+pub impl @json.FromJson for TsTypeParameterDeclaration
+
+pub struct TsTypeParameterInstantiation {
+  params : Array[TsType]
+}
+pub impl Eq for TsTypeParameterInstantiation
+pub impl Show for TsTypeParameterInstantiation
+pub impl ToJson for TsTypeParameterInstantiation
+pub impl @json.FromJson for TsTypeParameterInstantiation
+
+pub struct TsTypePredicate {
+  parameterName : TsParameterName
+  typeAnnotation : TsTypeAnnotation?
+  asserts : Bool
+}
+pub impl Eq for TsTypePredicate
+pub impl Show for TsTypePredicate
+pub impl ToJson for TsTypePredicate
+pub impl @json.FromJson for TsTypePredicate
+
+pub struct TsTypeQuery {
+  exprName : TsEntityName
+  typeArguments : TsTypeParameterInstantiation?
+}
+pub impl Eq for TsTypeQuery
+pub impl Show for TsTypeQuery
+pub impl ToJson for TsTypeQuery
+pub impl @json.FromJson for TsTypeQuery
+
+pub struct TsTypeReference {
+  typeName : TsEntityName
+  typeArguments : TsTypeParameterInstantiation?
+}
+pub impl Eq for TsTypeReference
+pub impl Show for TsTypeReference
+pub impl ToJson for TsTypeReference
+pub impl @json.FromJson for TsTypeReference
+
+pub struct TsUnionType {
+  types : Array[TsType]
+}
+pub impl Eq for TsUnionType
+pub impl Show for TsUnionType
+pub impl ToJson for TsUnionType
+pub impl @json.FromJson for TsUnionType
+
+pub struct TypeAnnotation {
+  typeAnnotation : FlowType
+}
+pub impl Eq for TypeAnnotation
+pub impl Show for TypeAnnotation
+pub impl ToJson for TypeAnnotation
+pub impl @json.FromJson for TypeAnnotation
+
+pub struct TypeAnnotationBase {
+  typeAnnotation : String
+}
+pub impl Eq for TypeAnnotationBase
+pub impl Show for TypeAnnotationBase
+pub impl ToJson for TypeAnnotationBase
+pub impl @json.FromJson for TypeAnnotationBase
+
+pub struct TypeCastExpression {
+  expression : Expression
+  typeAnnotation : TypeAnnotation
+}
+pub impl Eq for TypeCastExpression
+pub impl Show for TypeCastExpression
+pub impl ToJson for TypeCastExpression
+pub impl @json.FromJson for TypeCastExpression
+
+pub struct TypeCastExpressionBase {
+  expression : Expression
+  typeAnnotation : TypeAnnotationBase
+}
+pub impl Eq for TypeCastExpressionBase
+pub impl Show for TypeCastExpressionBase
+pub impl ToJson for TypeCastExpressionBase
+pub impl @json.FromJson for TypeCastExpressionBase
+
+pub struct TypeParameter {
+  name : String
+  default : TypeAnnotation?
+}
+pub impl Eq for TypeParameter
+pub impl Show for TypeParameter
+pub impl ToJson for TypeParameter
+pub impl @json.FromJson for TypeParameter
+
+pub struct TypeParameterDeclaration {
+  params : Array[TypeParameter]
+}
+pub impl Eq for TypeParameterDeclaration
+pub impl Show for TypeParameterDeclaration
+pub impl ToJson for TypeParameterDeclaration
+pub impl @json.FromJson for TypeParameterDeclaration
+
+pub struct TypeParameterDeclarationBase {
+  params : Array[TypeParameter]
+}
+pub impl Eq for TypeParameterDeclarationBase
+pub impl Show for TypeParameterDeclarationBase
+pub impl ToJson for TypeParameterDeclarationBase
+pub impl @json.FromJson for TypeParameterDeclarationBase
+
+pub struct TypeParameterInstantiation {
+  params : Array[FlowType]
+}
+pub impl Eq for TypeParameterInstantiation
+pub impl Show for TypeParameterInstantiation
+pub impl ToJson for TypeParameterInstantiation
+pub impl @json.FromJson for TypeParameterInstantiation
+
+pub struct TypeParameterInstantiationBase {
+  params : Array[Json]
+}
+pub impl Eq for TypeParameterInstantiationBase
+pub impl Show for TypeParameterInstantiationBase
+pub impl ToJson for TypeParameterInstantiationBase
+pub impl @json.FromJson for TypeParameterInstantiationBase
+
+pub struct UnaryExpression {
+  operator : UnaryOperator
+  prefix : Bool
+  argument : Expression
+}
+pub impl Eq for UnaryExpression
+pub impl Show for UnaryExpression
+pub impl ToJson for UnaryExpression
+pub impl @json.FromJson for UnaryExpression
+
+pub(all) enum UnaryOperator {
+  Minus
+  Plus
+  Star
+  Slash
+  Percent
+  Not
+  BitwiseNot
+  Typeof
+  Void
+  Delete
+  Throw
+}
+pub impl Eq for UnaryOperator
+pub impl Show for UnaryOperator
+pub impl ToJson for UnaryOperator
+pub impl @json.FromJson for UnaryOperator
+
+pub struct UpdateExpression {
+  operator : UpdateOperator
+  prefix : Bool
+  argument : Expression
+}
+pub impl Eq for UpdateExpression
+pub impl Show for UpdateExpression
+pub impl ToJson for UpdateExpression
+pub impl @json.FromJson for UpdateExpression
+
+pub(all) enum UpdateOperator {
+  Increment
+  Decrement
+}
+pub impl Eq for UpdateOperator
+pub impl Show for UpdateOperator
+pub impl ToJson for UpdateOperator
+pub impl @json.FromJson for UpdateOperator
+
+pub struct V8IntrinsicIdentifier {
+  name : String
+}
+pub impl Eq for V8IntrinsicIdentifier
+pub impl Show for V8IntrinsicIdentifier
+pub impl ToJson for V8IntrinsicIdentifier
+pub impl @json.FromJson for V8IntrinsicIdentifier
+
+pub struct VariableDeclaration {
+  declarations : Array[VariableDeclarator]
+  kind : VariableKind
+  declare_ : Bool
+}
+pub impl Eq for VariableDeclaration
+pub impl Show for VariableDeclaration
+pub impl ToJson for VariableDeclaration
+pub impl @json.FromJson for VariableDeclaration
+
+pub struct VariableDeclarator {
+  id : Pattern
+  init : Expression?
+  definite : Bool
+}
+pub impl Eq for VariableDeclarator
+pub impl Show for VariableDeclarator
+pub impl ToJson for VariableDeclarator
+pub impl @json.FromJson for VariableDeclarator
+
+pub(all) enum VariableKind {
   Var
   Let
   Const
+  Using
+  AwaitUsing
 }
 pub impl Eq for VariableKind
 pub impl Show for VariableKind
 pub impl ToJson for VariableKind
 pub impl @json.FromJson for VariableKind
+
+pub struct VoidPattern {
+  optional : Bool?
+  typeAnnotation : TypeAnnotation?
+}
+pub impl Eq for VoidPattern
+pub impl Show for VoidPattern
+pub impl ToJson for VoidPattern
+pub impl @json.FromJson for VoidPattern
+
+pub struct WhileStatement {
+  test_ : Expression
+  body : Statement
+}
+pub impl Eq for WhileStatement
+pub impl Show for WhileStatement
+pub impl ToJson for WhileStatement
+pub impl @json.FromJson for WhileStatement
+
+pub struct WithStatement {
+  object : Expression
+  body : Statement
+}
+pub impl Eq for WithStatement
+pub impl Show for WithStatement
+pub impl ToJson for WithStatement
+pub impl @json.FromJson for WithStatement
+
+pub struct YieldExpression {
+  argument : Expression?
+  delegate : Bool
+}
+pub impl Eq for YieldExpression
+pub impl Show for YieldExpression
+pub impl ToJson for YieldExpression
+pub impl @json.FromJson for YieldExpression
 
 // Type aliases
 

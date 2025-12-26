@@ -2,8 +2,8 @@
 package "oboard/bunnyjs/value"
 
 import(
-  "moonbitlang/core/bigint"
   "moonbitlang/core/json"
+  "oboard/bunnyjs/parser"
 )
 
 // Values
@@ -11,12 +11,11 @@ import(
 // Errors
 
 // Types and methods
-pub struct JSFunction {
+pub(all) struct JSFunction {
   name : String
   params : Array[String]
-  body : String
+  body : @parser.ASTNode
 }
-pub fn JSFunction::new(String, Array[String], String) -> Self
 pub impl Compare for JSFunction
 pub impl Eq for JSFunction
 pub impl Hash for JSFunction
@@ -25,12 +24,9 @@ pub impl ToJson for JSFunction
 pub impl @json.FromJson for JSFunction
 
 pub(all) struct JSObject {
-  mut properties : Map[String, JSValue]
-  mut prototype : JSValue
-  class_name : String
-  mut extensible : Bool
+  properties : Map[String, JSValue]
+  prototype : JSValue?
 }
-pub fn JSObject::new(String, JSValue) -> Self
 pub impl Compare for JSObject
 pub impl Eq for JSObject
 pub impl Hash for JSObject
@@ -42,8 +38,8 @@ pub(all) enum JSValue {
   String(String)
   Number(Double)
   Boolean(Bool)
-  BigInt(@bigint.BigInt)
-  Symbol(JSValue)
+  BigInt(Int64)
+  Symbol(String)
   Function(JSFunction)
   Object(JSObject)
   Null

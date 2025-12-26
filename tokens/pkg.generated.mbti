@@ -1,0 +1,123 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "oboard/bunnyjs/tokens"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) enum TokenKind {
+  NumericLiteral
+  StringLiteral
+  BooleanLiteral
+  NullLiteral
+  RegExpLiteral
+  Identifier
+  Break
+  Case
+  Catch
+  Class
+  Const
+  Continue
+  Debugger
+  Default
+  Delete
+  Do
+  Else
+  Export
+  Extends
+  Finally
+  For
+  Function
+  If
+  Import
+  In
+  Instanceof
+  New
+  Return
+  Super
+  Switch
+  This
+  Throw
+  Try
+  Typeof
+  Var
+  Void
+  While
+  With
+  Yield
+  Enum
+  Implements
+  Interface
+  Let
+  Package
+  Private
+  Protected
+  Public
+  Static
+  Await
+  Async
+  LBrace
+  RBrace
+  LParen
+  RParen
+  LBracket
+  RBracket
+  Dot
+  Ellipsis
+  Semi
+  Comma
+  Question
+  Colon
+  Arrow
+  Eq
+  Plus
+  Minus
+  Star
+  Slash
+  Percent
+  StarStar
+  PlusPlus
+  MinusMinus
+  LShift
+  RShift
+  URShift
+  BitAnd
+  BitOr
+  BitXor
+  Not
+  BitNot
+  And
+  Or
+  QuestionQuestion
+  EqEq
+  NotEq
+  EqEqEq
+  NotEqEq
+  Lt
+  Le
+  Gt
+  Ge
+  PlusEq
+  MinusEq
+  StarEq
+  SlashEq
+  PercentEq
+  StarStarEq
+  LShiftEq
+  RShiftEq
+  URShiftEq
+  BitAndEq
+  BitOrEq
+  BitXorEq
+  EOF
+  Illegal
+}
+pub fn TokenKind::to_string(Self) -> String
+pub impl Eq for TokenKind
+pub impl Show for TokenKind
+
+// Type aliases
+
+// Traits
+
