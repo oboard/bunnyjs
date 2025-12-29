@@ -56,107 +56,202 @@ pub(all) enum TokenKind {
   Static
 
   // Punctuation
+  /// (
   LParen
+  /// )
   RParen
+  /// {
   LBrace
+  /// }
   RBrace
+  /// [
   LBracket
+  /// ]
   RBracket
+  /// ;
   Semicolon
+  /// ,
   Comma
+  /// .
   Dot
+  /// :
   Colon
+  /// ?
   QuestionMark
+  /// ...
   Ellipsis
 
   // Operators
+  /// +
   Plus
+  /// -
   Minus
+  /// *
   Star
+  /// /
   Slash
+  /// %
   Percent
+  /// ++
   PlusPlus
+  /// --
   MinusMinus
+  /// =
   Equal
+  /// +=
   PlusEqual
+  /// -=
   MinusEqual
+  /// *=
   StarEqual
+  /// /=
   SlashEqual
+  /// %=
   PercentEqual
+  /// ==
   EqualEqual
+  /// !=
   NotEqual
+  /// ===
   StrictEqual
+  /// !==
   StrictNotEqual
+  /// <
   LessThan
+  /// <=
   LessThanOrEqual
+  /// >
   GreaterThan
+  /// >=
   GreaterThanOrEqual
+  /// !
   Exclamation
+  /// ~
   Tilde
+  /// &
   Ampersand
+  /// |
   Pipe
+  /// ^
   Caret
+  /// <<
   LeftShift
+  /// >>
   RightShift
+  /// >>>
   UnsignedRightShift
+  /// &=
   AmpersandEqual
+  /// |=
   PipeEqual
+  /// ^=
   CaretEqual
+  /// <<=
   LeftShiftEqual
+  /// >>=
   RightShiftEqual
+  /// >>>=
   UnsignedRightShiftEqual
+  /// **
   StarStar
+  /// **=
   StarStarEqual
+  /// =>
   Arrow
+  /// ??
   QuestionQuestion
 
   // Logical Operators
+  /// &&
   LogicalAnd
+  /// ||
   LogicalOr
+  /// !
   LogicalNot
 
   // Comparison (alternative names)
+  /// ==
   EqEq
+  /// !=
   NotEq
+  /// <=
   Le
+  /// >=
   Ge
+  /// &
   BitAnd
+  /// |
   BitOr
+  /// ^
   BitXor
+  /// !
   Not
+  /// ~
   BitNot
+  /// <
   Lt
+  /// >
   Gt
+  /// >>>
   URShift
+  /// <<
   LShift
+  /// >>
   RShift
+  /// >>>=
   URShiftEq
+  /// <<=
   LShiftEq
+  /// >>=
   RShiftEq
+  /// +=
   PlusEq
+  /// -=
   MinusEq
+  /// *=
   StarEq
+  /// /=
   SlashEq
+  /// &=
   BitAndEq
+  /// |=
   BitOrEq
+  /// ^=
   BitXorEq
+  /// &&
   And
+  /// ||
   Or
+  /// ;
   Semi
+  /// =
   Eq
+  /// Illegal
   Illegal
+  /// ===
   EqEqEq
+  /// !==
   NotEqEq
+  /// %=
   PercentEq
+  /// ?
   Question
 
   // Other
+  /// EOF
   EOF
+  /// Whitespace
   Whitespace
+  /// LineTerminator
   LineTerminator
+  /// Comment
   Comment
+  /// Template
   Template
+  /// TemplateHead
   TemplateHead
+  /// TemplateMiddle
   TemplateMiddle
+  /// TemplateTail
   TemplateTail
 } derive(Show, Eq, ToJson, FromJson)

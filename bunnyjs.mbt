@@ -14,7 +14,9 @@ pub fn Context::new(parent? : Context) -> Context {
 
 ///|
 pub fn Context::eval(self : Context, code : &Show) -> JSValue {
-  let ast = code.to_string() |> @lexer.parse |> @parser.parse
+  let lex = code.to_string() |> @lexer.parse
+  println(lex)
+  let ast = lex |> @parser.parse
   println(ast)
   let mut res = JSValue::Undefined
   for node in ast.body {
