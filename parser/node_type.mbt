@@ -177,7 +177,7 @@ pub struct NullLiteral {} derive(Show, Eq, ToJson, FromJson)
 
 ///|
 pub struct StringLiteral {
-  value : String
+  value : StringView
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
@@ -320,7 +320,7 @@ pub struct ParseError {
 /// 令牌
 pub struct Token {
   tokenType : TokenType
-  value : String
+  value : StringView
   start : Int
   end : Int
   loc : SourceLocation

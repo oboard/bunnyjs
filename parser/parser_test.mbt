@@ -1,7 +1,32 @@
 ///|
 test "tokenize and parse" {
-  let code = "1 + 3 - 8"
-  @json.inspect(code |> @lexer.parse |> @parser.parse, content={
+  @json.inspect("1 * 3 + 8" |> @lexer.parse |> @parser.parse, content={
+    "sourceType": "Module",
+    "body": [
+      [
+        "ExpressionStatement",
+        {
+          "expression": [
+            "BinaryExpression",
+            {
+              "operator": "Plus",
+              "left": [
+                "BinaryExpression",
+                {
+                  "operator": "Star",
+                  "left": ["NumericLiteral", { "value": 1 }],
+                  "right": ["NumericLiteral", { "value": 3 }],
+                },
+              ],
+              "right": ["NumericLiteral", { "value": 8 }],
+            },
+          ],
+        },
+      ],
+    ],
+    "directives": [],
+  })
+  @json.inspect("1 / 3 * 8 - 8" |> @lexer.parse |> @parser.parse, content={
     "sourceType": "Module",
     "body": [
       [
@@ -14,9 +39,16 @@ test "tokenize and parse" {
               "left": [
                 "BinaryExpression",
                 {
-                  "operator": "Plus",
-                  "left": ["NumericLiteral", { "value": 1 }],
-                  "right": ["NumericLiteral", { "value": 3 }],
+                  "operator": "Star",
+                  "left": [
+                    "BinaryExpression",
+                    {
+                      "operator": "Slash",
+                      "left": ["NumericLiteral", { "value": 1 }],
+                      "right": ["NumericLiteral", { "value": 3 }],
+                    },
+                  ],
+                  "right": ["NumericLiteral", { "value": 8 }],
                 },
               ],
               "right": ["NumericLiteral", { "value": 8 }],
@@ -55,8 +87,7 @@ test "parse equality" {
 
 ///|
 test "parse strict equality" {
-  let code = "1 === 1"
-  @json.inspect(code |> @lexer.parse |> @parser.parse, content={
+  @json.inspect("(1 === 1) == true" |> @lexer.parse |> @parser.parse, content={
     "sourceType": "Module",
     "body": [
       [
@@ -65,9 +96,16 @@ test "parse strict equality" {
           "expression": [
             "BinaryExpression",
             {
-              "operator": "StrictEqual",
-              "left": ["NumericLiteral", { "value": 1 }],
-              "right": ["NumericLiteral", { "value": 1 }],
+              "operator": "Equal",
+              "left": [
+                "BinaryExpression",
+                {
+                  "operator": "StrictEqual",
+                  "left": ["NumericLiteral", { "value": 1 }],
+                  "right": ["NumericLiteral", { "value": 1 }],
+                },
+              ],
+              "right": ["BooleanLiteral", { "value": true }],
             },
           ],
         },

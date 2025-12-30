@@ -1951,7 +1951,7 @@ pub impl ToJson for StaticBlock
 pub impl @json.FromJson for StaticBlock
 
 pub struct StringLiteral {
-  value : String
+  value : StringView
 }
 pub impl Eq for StringLiteral
 pub impl Show for StringLiteral
@@ -2119,7 +2119,7 @@ pub impl @json.FromJson for ThrowStatement
 
 pub struct Token {
   tokenType : TokenType
-  value : String
+  value : StringView
   start : Int
   end : Int
   loc : SourceLocation

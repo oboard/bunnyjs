@@ -241,6 +241,10 @@ fn Parser::parse_postfix(self : Parser) -> Expression {
 fn Parser::parse_primary(self : Parser) -> Expression {
   let token = self.peek()
   match token.kind {
+    TokenKind::BooleanLiteral => {
+      self.advance()
+      Expression::BooleanLiteral({ value: token.value == "true" })
+    }
     TokenKind::NumericLiteral => {
       self.advance()
       let val = @strconv.parse_double(token.value) catch { _ => 0.0 }

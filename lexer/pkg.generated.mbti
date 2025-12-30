@@ -13,21 +13,22 @@ pub fn parse(String) -> Array[LexToken]
 // Types and methods
 pub(all) struct LexToken {
   kind : @tokens.TokenKind
-  value : String
+  value : StringView
   line : Int
   column : Int
 }
 pub impl Eq for LexToken
 pub impl Show for LexToken
+pub impl ToJson for LexToken
 
 pub(all) struct Lexer {
   input : String
   mut position : Int
   mut line : Int
-  mut column : Int
+  mut line_start : Int
+  mut tokens : Array[LexToken]
 }
 pub fn Lexer::new(String) -> Self
-pub fn Lexer::tokenize(Self) -> Array[LexToken]
 
 // Type aliases
 

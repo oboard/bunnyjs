@@ -35,7 +35,7 @@ pub impl ToJson for JSObject
 pub impl @json.FromJson for JSObject
 
 pub(all) enum JSValue {
-  String(String)
+  String(StringView)
   Number(Double)
   Boolean(Bool)
   BigInt(Int64)

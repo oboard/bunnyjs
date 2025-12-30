@@ -1,6 +1,6 @@
 ///|
 pub(all) enum JSValue {
-  String(String)
+  String(StringView)
   Number(Double)
   Boolean(Bool)
   BigInt(Int64)
@@ -13,19 +13,17 @@ pub(all) enum JSValue {
 
 ///|
 pub impl Show for JSValue with output(self, logger) {
-  logger.write_string(
-    match self {
-      String(s) => s
-      Number(n) => n.to_string()
-      Boolean(b) => b.to_string()
-      BigInt(i) => i.to_string()
-      Symbol(s) => "Symbol(" + s + ")"
-      Function(f) => "Function: " + f.name
-      Object(_) => "[object Object]"
-      Null => "null"
-      Undefined => "undefined"
-    },
-  )
+  match self {
+    String(s) => logger.write_view(s)
+    Number(n) => n.output(logger)
+    Boolean(b) => b.output(logger)
+    BigInt(i) => i.output(logger)
+    Symbol(s) => logger.write_string("Symbol(" + s + ")")
+    Function(f) => logger.write_string("Function: " + f.name)
+    Object(_) => logger.write_string("[object Object]")
+    Null => logger.write_string("null")
+    Undefined => logger.write_string("undefined")
+  }
 }
 
 ///|
