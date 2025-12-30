@@ -8,4 +8,7 @@ test "arithmetic" {
   @json.inspect(context.eval("\"Hello World\""), content=[
     "String", "Hello World",
   ])
+  @json.inspect(context.eval("`Hello` + `World`"), content=[
+    "String", "HelloWorld",
+  ])
 }

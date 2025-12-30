@@ -15,6 +15,7 @@ pub impl Add for JSValue with add(self, other) -> JSValue {
     Number(@double.not_a_number)
   } else {
     match (self, other) {
+      (String(a), String(b)) => String(a + b)
       (Number(a), Number(b)) => Number(a + b)
       (String(a), Number(b)) =>
         Number(
