@@ -158,6 +158,7 @@ pub(all) enum TokenKind {
   TemplateMiddle
   TemplateTail
 }
+pub fn TokenKind::is_keyword(Self) -> Bool
 pub impl Eq for TokenKind
 pub impl Show for TokenKind
 pub impl ToJson for TokenKind

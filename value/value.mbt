@@ -3,7 +3,7 @@ pub(all) enum JSValue {
   String(StringView)
   Number(Double)
   Boolean(Bool)
-  BigInt(Int64)
+  BigInt(BigInt)
   Symbol(String)
   Function(JSFunction)
   Object(JSObject)
@@ -61,4 +61,19 @@ pub impl Compare for JSFunction with compare(_, _) -> Int {
 pub impl Hash for JSFunction with hash_combine(self, hasher) -> Unit {
   hasher.combine(self.name)
   hasher.combine(self.body.to_json().stringify())
+}
+
+///|
+pub fn JSValue::is_truthy(self : JSValue) -> Bool {
+  match self {
+    String(s) => s.length() > 0
+    Number(n) => n != 0.0
+    Boolean(b) => b
+    BigInt(i) => i != 0
+    Symbol(_) => true
+    Function(_) => true
+    Object(_) => true
+    Null => false
+    Undefined => false
+  }
 }

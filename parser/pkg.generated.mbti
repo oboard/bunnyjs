@@ -64,10 +64,18 @@ pub impl Show for ArgumentPlaceholder
 pub impl ToJson for ArgumentPlaceholder
 pub impl @json.FromJson for ArgumentPlaceholder
 
-pub enum ArrayExpression {
+pub(all) enum ArrayElement {
   Expression(Expression)
   SpreadElement(argument~ : Expression)
   None
+}
+pub impl Eq for ArrayElement
+pub impl Show for ArrayElement
+pub impl ToJson for ArrayElement
+pub impl @json.FromJson for ArrayElement
+
+pub struct ArrayExpression {
+  elements : Array[ArrayElement]
 }
 pub impl Eq for ArrayExpression
 pub impl Show for ArrayExpression
@@ -1751,7 +1759,6 @@ pub(all) struct Parser {
   mut pos : Int
 }
 pub fn Parser::new(Array[@lexer.LexToken]) -> Self
-pub fn Parser::parse(Self) -> Program
 pub fn Parser::parse_program(Self) -> Program
 
 pub(all) enum Pattern {
@@ -1760,6 +1767,7 @@ pub(all) enum Pattern {
   ArrayPattern(ArrayPattern)
   RestElement(RestElement)
   AssignmentPattern(AssignmentPattern)
+  MemberExpression(MemberExpression)
   VoidPattern(VoidPattern)
 }
 pub impl Eq for Pattern

@@ -7,6 +7,55 @@ pub(all) struct LexToken {
 } derive(Show, ToJson, Eq)
 
 ///|
+let keyword_table : @immut/hashmap.HashMap[String, @tokens.TokenKind] = @immut/hashmap.HashMap::from_array([
+    ("break", @tokens.TokenKind::Break),
+    ("case", @tokens.TokenKind::Case),
+    ("catch", @tokens.TokenKind::Catch),
+    ("class", @tokens.TokenKind::Class),
+    ("const", @tokens.TokenKind::Const),
+    ("continue", @tokens.TokenKind::Continue),
+    ("debugger", @tokens.TokenKind::Debugger),
+    ("default", @tokens.TokenKind::Default),
+    ("delete", @tokens.TokenKind::Delete),
+    ("do", @tokens.TokenKind::Do),
+    ("else", @tokens.TokenKind::Else),
+    ("export", @tokens.TokenKind::Export),
+    ("extends", @tokens.TokenKind::Extends),
+    ("finally", @tokens.TokenKind::Finally),
+    ("for", @tokens.TokenKind::For),
+    ("function", @tokens.TokenKind::Function),
+    ("if", @tokens.TokenKind::If),
+    ("import", @tokens.TokenKind::Import),
+    ("in", @tokens.TokenKind::In),
+    ("instanceof", @tokens.TokenKind::Instanceof),
+    ("new", @tokens.TokenKind::New),
+    ("return", @tokens.TokenKind::Return),
+    ("super", @tokens.TokenKind::Super),
+    ("switch", @tokens.TokenKind::Switch),
+    ("this", @tokens.TokenKind::This),
+    ("throw", @tokens.TokenKind::Throw),
+    ("try", @tokens.TokenKind::Try),
+    ("typeof", @tokens.TokenKind::Typeof),
+    ("var", @tokens.TokenKind::Var),
+    ("void", @tokens.TokenKind::Void),
+    ("while", @tokens.TokenKind::While),
+    ("with", @tokens.TokenKind::With),
+    ("yield", @tokens.TokenKind::Yield),
+    ("enum", @tokens.TokenKind::Enum),
+    ("implements", @tokens.TokenKind::Implements),
+    ("interface", @tokens.TokenKind::Interface),
+    ("let", @tokens.TokenKind::Let),
+    ("package", @tokens.TokenKind::Package),
+    ("private", @tokens.TokenKind::Private),
+    ("protected", @tokens.TokenKind::Protected),
+    ("public", @tokens.TokenKind::Public),
+    ("static", @tokens.TokenKind::Static),
+    ("await", @tokens.TokenKind::Await),
+    ("async", @tokens.TokenKind::Async),
+  ],
+)
+
+///|
 pub(all) struct Lexer {
   input : String
   mut position : Int
@@ -35,6 +84,7 @@ fn Lexer::add_token(
 fn Lexer::tokenize(self : Lexer) -> Array[LexToken] {
   let input = self.input
   lex_tokens(input, self)
+  println(self.tokens)
   self.tokens
 }
 
@@ -102,27 +152,27 @@ fn lex_tokens(input : StringView, lexer : Lexer) -> Unit {
       lex_tokens(rest, lexer)
     }
     // Decimal with dot, no exponent
-    ("[0-9](_|[0-9])*\\.[0-9](_|[0-9])*" as raw, rest) => {
+    ("[0-9](_|[0-9])*\.[0-9](_|[0-9])*" as raw, rest) => {
       lexer.add_token(@tokens.TokenKind::NumericLiteral, raw)
       lex_tokens(rest, lexer)
     }
     // Decimal with dot and exponent signed +
-    ("[0-9](_|[0-9])*\\.[0-9](_|[0-9])*[eE]\\+[0-9](_|[0-9])*" as raw, rest) => {
+    ("[0-9](_|[0-9])*\.[0-9](_|[0-9])*[eE]\+[0-9](_|[0-9])*" as raw, rest) => {
       lexer.add_token(@tokens.TokenKind::NumericLiteral, raw)
       lex_tokens(rest, lexer)
     }
     // Decimal with dot and exponent signed -
-    ("[0-9](_|[0-9])*\\.[0-9](_|[0-9])*[eE]-[0-9](_|[0-9])*" as raw, rest) => {
+    ("[0-9](_|[0-9])*\.[0-9](_|[0-9])*[eE]-[0-9](_|[0-9])*" as raw, rest) => {
       lexer.add_token(@tokens.TokenKind::NumericLiteral, raw)
       lex_tokens(rest, lexer)
     }
     // Decimal with dot and exponent unsigned
-    ("[0-9](_|[0-9])*\\.[0-9](_|[0-9])*[eE][0-9](_|[0-9])*" as raw, rest) => {
+    ("[0-9](_|[0-9])*\.[0-9](_|[0-9])*[eE][0-9](_|[0-9])*" as raw, rest) => {
       lexer.add_token(@tokens.TokenKind::NumericLiteral, raw)
       lex_tokens(rest, lexer)
     }
     // Decimal without dot, with exponent signed +
-    ("[0-9](_|[0-9])*[eE]\\+[0-9](_|[0-9])*" as raw, rest) => {
+    ("[0-9](_|[0-9])*[eE]\+[0-9](_|[0-9])*" as raw, rest) => {
       lexer.add_token(@tokens.TokenKind::NumericLiteral, raw)
       lex_tokens(rest, lexer)
     }
@@ -137,22 +187,22 @@ fn lex_tokens(input : StringView, lexer : Lexer) -> Unit {
       lex_tokens(rest, lexer)
     }
     // Dot starting, no exponent
-    ("\\.[0-9](_|[0-9])*" as raw, rest) => {
+    ("\.[0-9](_|[0-9])*" as raw, rest) => {
       lexer.add_token(@tokens.TokenKind::NumericLiteral, raw)
       lex_tokens(rest, lexer)
     }
     // Dot starting, with exponent signed +
-    ("\\.[0-9](_|[0-9])*[eE]\\+[0-9](_|[0-9])*" as raw, rest) => {
+    ("\.[0-9](_|[0-9])*[eE]\+[0-9](_|[0-9])*" as raw, rest) => {
       lexer.add_token(@tokens.TokenKind::NumericLiteral, raw)
       lex_tokens(rest, lexer)
     }
     // Dot starting, with exponent signed -
-    ("\\.[0-9](_|[0-9])*[eE]-[0-9](_|[0-9])*" as raw, rest) => {
+    ("\.[0-9](_|[0-9])*[eE]-[0-9](_|[0-9])*" as raw, rest) => {
       lexer.add_token(@tokens.TokenKind::NumericLiteral, raw)
       lex_tokens(rest, lexer)
     }
     // Dot starting, with exponent unsigned
-    ("\\.[0-9](_|[0-9])*[eE][0-9](_|[0-9])*" as raw, rest) => {
+    ("\.[0-9](_|[0-9])*[eE][0-9](_|[0-9])*" as raw, rest) => {
       lexer.add_token(@tokens.TokenKind::NumericLiteral, raw)
       lex_tokens(rest, lexer)
     }
@@ -164,12 +214,13 @@ fn lex_tokens(input : StringView, lexer : Lexer) -> Unit {
 
     // Identifiers
     ("[a-zA-Z_$][a-zA-Z0-9_$]*" as raw, rest) => {
-      lexer.add_token(@tokens.TokenKind::Identifier, raw)
+      let kind = match keyword_table.get(raw.to_string()) {
+        Some(k) => k
+        None => @tokens.TokenKind::Identifier
+      }
+      lexer.add_token(kind, raw)
       lex_tokens(rest, lexer)
     }
-
-    // EOF
-    ("", _) => lexer.add_token(@tokens.TokenKind::EOF, "")
     ("[0-9]+" as raw, rest) => {
       lexer.add_token(@tokens.TokenKind::NumericLiteral, raw)
       lex_tokens(rest, lexer)
@@ -187,305 +238,121 @@ fn lex_tokens(input : StringView, lexer : Lexer) -> Unit {
       lex_tokens(rest, lexer)
     }
 
-    // Keywords
-    ("break", rest) => {
-      lexer.add_token(@tokens.TokenKind::Break, "break")
-      lex_tokens(rest, lexer)
-    }
-    ("case", rest) => {
-      lexer.add_token(@tokens.TokenKind::Case, "case")
-      lex_tokens(rest, lexer)
-    }
-    ("catch", rest) => {
-      lexer.add_token(@tokens.TokenKind::Catch, "catch")
-      lex_tokens(rest, lexer)
-    }
-    ("class", rest) => {
-      lexer.add_token(@tokens.TokenKind::Class, "class")
-      lex_tokens(rest, lexer)
-    }
-    ("const", rest) => {
-      lexer.add_token(@tokens.TokenKind::Const, "const")
-      lex_tokens(rest, lexer)
-    }
-    ("continue", rest) => {
-      lexer.add_token(@tokens.TokenKind::Continue, "continue")
-      lex_tokens(rest, lexer)
-    }
-    ("debugger", rest) => {
-      lexer.add_token(@tokens.TokenKind::Debugger, "debugger")
-      lex_tokens(rest, lexer)
-    }
-    ("default", rest) => {
-      lexer.add_token(@tokens.TokenKind::Default, "default")
-      lex_tokens(rest, lexer)
-    }
-    ("delete", rest) => {
-      lexer.add_token(@tokens.TokenKind::Delete, "delete")
-      lex_tokens(rest, lexer)
-    }
-    ("do", rest) => {
-      lexer.add_token(@tokens.TokenKind::Do, "do")
-      lex_tokens(rest, lexer)
-    }
-    ("else", rest) => {
-      lexer.add_token(@tokens.TokenKind::Else, "else")
-      lex_tokens(rest, lexer)
-    }
-    ("export", rest) => {
-      lexer.add_token(@tokens.TokenKind::Export, "export")
-      lex_tokens(rest, lexer)
-    }
-    ("extends", rest) => {
-      lexer.add_token(@tokens.TokenKind::Extends, "extends")
-      lex_tokens(rest, lexer)
-    }
-    ("finally", rest) => {
-      lexer.add_token(@tokens.TokenKind::Finally, "finally")
-      lex_tokens(rest, lexer)
-    }
-    ("for", rest) => {
-      lexer.add_token(@tokens.TokenKind::For, "for")
-      lex_tokens(rest, lexer)
-    }
-    ("function", rest) => {
-      lexer.add_token(@tokens.TokenKind::Function, "function")
-      lex_tokens(rest, lexer)
-    }
-    ("if", rest) => {
-      lexer.add_token(@tokens.TokenKind::If, "if")
-      lex_tokens(rest, lexer)
-    }
-    ("import", rest) => {
-      lexer.add_token(@tokens.TokenKind::Import, "import")
-      lex_tokens(rest, lexer)
-    }
-    ("in", rest) => {
-      lexer.add_token(@tokens.TokenKind::In, "in")
-      lex_tokens(rest, lexer)
-    }
-    ("instanceof", rest) => {
-      lexer.add_token(@tokens.TokenKind::Instanceof, "instanceof")
-      lex_tokens(rest, lexer)
-    }
-    ("new", rest) => {
-      lexer.add_token(@tokens.TokenKind::New, "new")
-      lex_tokens(rest, lexer)
-    }
-    ("return", rest) => {
-      lexer.add_token(@tokens.TokenKind::Return, "return")
-      lex_tokens(rest, lexer)
-    }
-    ("super", rest) => {
-      lexer.add_token(@tokens.TokenKind::Super, "super")
-      lex_tokens(rest, lexer)
-    }
-    ("switch", rest) => {
-      lexer.add_token(@tokens.TokenKind::Switch, "switch")
-      lex_tokens(rest, lexer)
-    }
-    ("this", rest) => {
-      lexer.add_token(@tokens.TokenKind::This, "this")
-      lex_tokens(rest, lexer)
-    }
-    ("throw", rest) => {
-      lexer.add_token(@tokens.TokenKind::Throw, "throw")
-      lex_tokens(rest, lexer)
-    }
-    ("try", rest) => {
-      lexer.add_token(@tokens.TokenKind::Try, "try")
-      lex_tokens(rest, lexer)
-    }
-    ("typeof", rest) => {
-      lexer.add_token(@tokens.TokenKind::Typeof, "typeof")
-      lex_tokens(rest, lexer)
-    }
-    ("var", rest) => {
-      lexer.add_token(@tokens.TokenKind::Var, "var")
-      lex_tokens(rest, lexer)
-    }
-    ("void", rest) => {
-      lexer.add_token(@tokens.TokenKind::Void, "void")
-      lex_tokens(rest, lexer)
-    }
-    ("while", rest) => {
-      lexer.add_token(@tokens.TokenKind::While, "while")
-      lex_tokens(rest, lexer)
-    }
-    ("with", rest) => {
-      lexer.add_token(@tokens.TokenKind::With, "with")
-      lex_tokens(rest, lexer)
-    }
-    ("yield", rest) => {
-      lexer.add_token(@tokens.TokenKind::Yield, "yield")
-      lex_tokens(rest, lexer)
-    }
-    ("enum", rest) => {
-      lexer.add_token(@tokens.TokenKind::Enum, "enum")
-      lex_tokens(rest, lexer)
-    }
-    ("implements", rest) => {
-      lexer.add_token(@tokens.TokenKind::Implements, "implements")
-      lex_tokens(rest, lexer)
-    }
-    ("interface", rest) => {
-      lexer.add_token(@tokens.TokenKind::Interface, "interface")
-      lex_tokens(rest, lexer)
-    }
-    ("let", rest) => {
-      lexer.add_token(@tokens.TokenKind::Let, "let")
-      lex_tokens(rest, lexer)
-    }
-    ("package", rest) => {
-      lexer.add_token(@tokens.TokenKind::Package, "package")
-      lex_tokens(rest, lexer)
-    }
-    ("private", rest) => {
-      lexer.add_token(@tokens.TokenKind::Private, "private")
-      lex_tokens(rest, lexer)
-    }
-    ("protected", rest) => {
-      lexer.add_token(@tokens.TokenKind::Protected, "protected")
-      lex_tokens(rest, lexer)
-    }
-    ("public", rest) => {
-      lexer.add_token(@tokens.TokenKind::Public, "public")
-      lex_tokens(rest, lexer)
-    }
-    ("static", rest) => {
-      lexer.add_token(@tokens.TokenKind::Static, "static")
-      lex_tokens(rest, lexer)
-    }
-    ("await", rest) => {
-      lexer.add_token(@tokens.TokenKind::Await, "await")
-      lex_tokens(rest, lexer)
-    }
-    ("async", rest) => {
-      lexer.add_token(@tokens.TokenKind::Async, "async")
-      lex_tokens(rest, lexer)
-    }
-
-    // Identifiers
-    ("[a-zA-Z_$][a-zA-Z0-9_$]*" as raw, rest) => {
-      lexer.add_token(@tokens.TokenKind::Identifier, raw)
-      lex_tokens(rest, lexer)
-    }
-
     // Operators
-    ("\\.\\.\\.", rest) => {
-      lexer.add_token(@tokens.TokenKind::Ellipsis, "...")
+    ("\\.\\.\\." as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::Ellipsis, raw)
       lex_tokens(rest, lexer)
     }
-    ("===", rest) => {
-      lexer.add_token(@tokens.TokenKind::EqEqEq, "===")
+    ("===" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::EqEqEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("!==", rest) => {
-      lexer.add_token(@tokens.TokenKind::NotEqEq, "!==")
+    ("!==" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::NotEqEq, raw)
       lex_tokens(rest, lexer)
     }
-    (">>>", rest) => {
-      lexer.add_token(@tokens.TokenKind::URShift, ">>>")
+    (">>>" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::URShift, raw)
       lex_tokens(rest, lexer)
     }
-    (">>>=", rest) => {
-      lexer.add_token(@tokens.TokenKind::URShiftEq, ">>>=")
+    (">>>=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::URShiftEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("<<=", rest) => {
-      lexer.add_token(@tokens.TokenKind::LShiftEq, "<<=")
+    ("<<=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::LShiftEq, raw)
       lex_tokens(rest, lexer)
     }
-    (">>=", rest) => {
-      lexer.add_token(@tokens.TokenKind::RShiftEq, ">>=")
+    (">>=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::RShiftEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("\\*\\*=", rest) => {
-      lexer.add_token(@tokens.TokenKind::StarStarEqual, "**=")
+    ("\*\*=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::StarStarEqual, raw)
       lex_tokens(rest, lexer)
     }
-    ("\\*\\*", rest) => {
-      lexer.add_token(@tokens.TokenKind::StarStar, "**")
+    ("\*\*" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::StarStar, raw)
       lex_tokens(rest, lexer)
     }
-    (">>", rest) => {
-      lexer.add_token(@tokens.TokenKind::RShift, ">>")
+    (">>" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::RShift, raw)
       lex_tokens(rest, lexer)
     }
-    ("<<", rest) => {
-      lexer.add_token(@tokens.TokenKind::LShift, "<<")
+    ("<<" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::LShift, raw)
       lex_tokens(rest, lexer)
     }
-    ("==", rest) => {
-      lexer.add_token(@tokens.TokenKind::EqEq, "==")
+    ("==" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::EqEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("!=", rest) => {
-      lexer.add_token(@tokens.TokenKind::NotEq, "!=")
+    ("!=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::NotEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("<=", rest) => {
-      lexer.add_token(@tokens.TokenKind::Le, "<=")
+    ("<=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::Le, raw)
       lex_tokens(rest, lexer)
     }
-    (">=", rest) => {
-      lexer.add_token(@tokens.TokenKind::Ge, ">=")
+    (">=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::Ge, raw)
       lex_tokens(rest, lexer)
     }
-    ("&&", rest) => {
-      lexer.add_token(@tokens.TokenKind::And, "&&")
+    ("&&" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::And, raw)
       lex_tokens(rest, lexer)
     }
-    ("\\|\\|", rest) => {
-      lexer.add_token(@tokens.TokenKind::Or, "||")
+    ("\|\|" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::Or, raw)
       lex_tokens(rest, lexer)
     }
-    ("\\?\\?", rest) => {
-      lexer.add_token(@tokens.TokenKind::QuestionQuestion, "??")
+    ("\?\?" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::QuestionQuestion, raw)
       lex_tokens(rest, lexer)
     }
-    ("\\+\\+", rest) => {
-      lexer.add_token(@tokens.TokenKind::PlusPlus, "++")
+    ("\+\+" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::PlusPlus, raw)
       lex_tokens(rest, lexer)
     }
-    ("--", rest) => {
-      lexer.add_token(@tokens.TokenKind::MinusMinus, "--")
+    ("--" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::MinusMinus, raw)
       lex_tokens(rest, lexer)
     }
-    ("=>", rest) => {
-      lexer.add_token(@tokens.TokenKind::Arrow, "=>")
+    ("=>" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::Arrow, raw)
       lex_tokens(rest, lexer)
     }
-    ("\\+=", rest) => {
-      lexer.add_token(@tokens.TokenKind::PlusEq, "+=")
+    ("\+=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::PlusEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("-=", rest) => {
-      lexer.add_token(@tokens.TokenKind::MinusEq, "-=")
+    ("-=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::MinusEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("\*=", rest) => {
-      lexer.add_token(@tokens.TokenKind::StarEq, "*=")
+    ("\*=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::StarEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("/=", rest) => {
-      lexer.add_token(@tokens.TokenKind::SlashEq, "/=")
+    ("/=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::SlashEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("%=", rest) => {
-      lexer.add_token(@tokens.TokenKind::PercentEq, "%=")
+    ("%=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::PercentEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("&=", rest) => {
-      lexer.add_token(@tokens.TokenKind::BitAndEq, "&=")
+    ("&=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::BitAndEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("\|=", rest) => {
-      lexer.add_token(@tokens.TokenKind::BitOrEq, "|=")
+    ("\|=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::BitOrEq, raw)
       lex_tokens(rest, lexer)
     }
-    ("\^=", rest) => {
-      lexer.add_token(@tokens.TokenKind::BitXorEq, "^=")
+    ("\^=" as raw, rest) => {
+      lexer.add_token(@tokens.TokenKind::BitXorEq, raw)
       lex_tokens(rest, lexer)
     }
 
@@ -512,6 +379,10 @@ fn lex_tokens(input : StringView, lexer : Lexer) -> Unit {
     }
     ("\]", rest) => {
       lexer.add_token(@tokens.TokenKind::RBracket, "]")
+      lex_tokens(rest, lexer)
+    }
+    ("\.\.\.", rest) => {
+      lexer.add_token(@tokens.TokenKind::Ellipsis, "...")
       lex_tokens(rest, lexer)
     }
     ("\.", rest) => {

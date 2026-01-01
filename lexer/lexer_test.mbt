@@ -45,3 +45,13 @@ test "bool" {
     { "kind": "EOF", "value": "EOF", "line": 1, "column": 5 },
   ])
 }
+
+///|
+
+///|
+test "function" {
+  @json.inspect(@lexer.parse("function"), content=[
+    { "kind": "Function", "value": "function", "line": 1, "column": 1 },
+    { "kind": "EOF", "value": "EOF", "line": 1, "column": 9 },
+  ])
+}

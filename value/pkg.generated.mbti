@@ -2,6 +2,7 @@
 package "oboard/bunnyjs/value"
 
 import(
+  "moonbitlang/core/bigint"
   "moonbitlang/core/json"
   "oboard/bunnyjs/parser"
 )
@@ -38,13 +39,14 @@ pub(all) enum JSValue {
   String(StringView)
   Number(Double)
   Boolean(Bool)
-  BigInt(Int64)
+  BigInt(@bigint.BigInt)
   Symbol(String)
   Function(JSFunction)
   Object(JSObject)
   Null
   Undefined
 }
+pub fn JSValue::is_truthy(Self) -> Bool
 pub fn JSValue::unstrict_equal(Self, Self) -> Bool
 pub impl Add for JSValue
 pub impl Compare for JSValue

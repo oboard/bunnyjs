@@ -66,6 +66,27 @@ fn Context::evaluate(self : Context, node : @parser.NodeType) -> JSValue {
             Instanceof => Undefined
           }
         }
+        LogicalExpression({ operator, left, right }) => {
+          let left_val = self.evaluate(Expression(left))
+          match operator {
+            LogicalOr =>
+              if left_val.is_truthy() {
+                left_val
+              } else {
+                self.evaluate(Expression(right))
+              }
+            LogicalAnd =>
+              if left_val.is_truthy() {
+                self.evaluate(Expression(right))
+              } else {
+                left_val
+              }
+          }
+        }
+        // TODO: RegExpLiteral
+        RegExpLiteral(_) =>
+          Object({ properties: Map::new(), prototype: Some(Null) })
+        BooleanLiteral({ value }) => Boolean(value)
         NumericLiteral({ value }) => Number(value)
         StringLiteral({ value }) => String(value)
         Identifier({ name, .. }) =>

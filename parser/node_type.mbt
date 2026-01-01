@@ -75,10 +75,15 @@ pub(all) enum RegExpFlag {
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
-pub enum ArrayExpression {
+pub(all) enum ArrayElement {
   Expression(Expression)
   SpreadElement(argument~ : Expression)
   None
+} derive(Show, Eq, ToJson, FromJson)
+
+///|
+pub struct ArrayExpression {
+  elements : Array[ArrayElement]
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
@@ -141,6 +146,7 @@ pub(all) enum Pattern {
   ArrayPattern(ArrayPattern)
   RestElement(RestElement)
   AssignmentPattern(AssignmentPattern)
+  MemberExpression(MemberExpression)
   VoidPattern(VoidPattern)
 } derive(Show, Eq, ToJson, FromJson)
 

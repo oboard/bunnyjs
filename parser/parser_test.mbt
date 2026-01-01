@@ -114,3 +114,90 @@ test "parse strict equality" {
     "directives": [],
   })
 }
+
+///|
+test "parse logical" {
+  @json.inspect("true || false" |> @lexer.parse |> @parser.parse, content={
+    "sourceType": "Module",
+    "body": [
+      [
+        "ExpressionStatement",
+        {
+          "expression": [
+            "LogicalExpression",
+            {
+              "operator": "LogicalOr",
+              "left": ["BooleanLiteral", { "value": true }],
+              "right": ["BooleanLiteral", { "value": false }],
+            },
+          ],
+        },
+      ],
+    ],
+    "directives": [],
+  })
+}
+
+///|
+test "parse logical precedence" {
+  @json.inspect("true || false && true" |> @lexer.parse |> @parser.parse, content={
+    "sourceType": "Module",
+    "body": [
+      [
+        "ExpressionStatement",
+        {
+          "expression": [
+            "LogicalExpression",
+            {
+              "operator": "LogicalOr",
+              "left": ["BooleanLiteral", { "value": true }],
+              "right": [
+                "LogicalExpression",
+                {
+                  "operator": "LogicalAnd",
+                  "left": ["BooleanLiteral", { "value": false }],
+                  "right": ["BooleanLiteral", { "value": true }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    ],
+    "directives": [],
+  })
+}
+
+///|
+test "parse array literal" {
+  @json.inspect("[1, 2, , ...a]" |> @lexer.parse |> @parser.parse, content={
+    "sourceType": "Module",
+    "body": [
+      [
+        "ExpressionStatement",
+        {
+          "expression": [
+            "ArrayExpression",
+            {
+              "elements": [
+                ["Expression", ["NumericLiteral", { "value": 1 }]],
+                ["Expression", ["NumericLiteral", { "value": 2 }]],
+                "None",
+                [
+                  "SpreadElement",
+                  {
+                    "argument": [
+                      "Identifier",
+                      { "name": "a", "optional": false },
+                    ],
+                  },
+                ],
+              ],
+            },
+          ],
+        },
+      ],
+    ],
+    "directives": [],
+  })
+}
