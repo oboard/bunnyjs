@@ -58,6 +58,6 @@ test "function" {
     { "kind": "NumericLiteral", "value": "1", "line": 1, "column": 25 },
     { "kind": "Semicolon", "value": ";", "line": 1, "column": 26 },
     { "kind": "RBrace", "value": "}", "line": 1, "column": 27 },
-    { "kind": "EndOfFile", "value": "EOF", "line": 1, "column": 28 },
+    { "kind": "EOF", "value": "EOF", "line": 1, "column": 28 },
   ])
 }

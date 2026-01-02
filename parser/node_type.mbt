@@ -107,7 +107,7 @@ pub(all) enum Expression {
   SequenceExpression(SequenceExpression)
   ParenthesizedExpression(ParenthesizedExpression)
   ThisExpression
-  UnaryExpression(UnaryExpression)
+  PrefixUnaryExpression(PrefixUnaryExpression)
   UpdateExpression(UpdateExpression)
   ArrowFunctionExpression(ArrowFunctionExpression)
   ClassExpression(ClassExpression)
@@ -655,7 +655,7 @@ pub struct Decorator {
 
 ///|
 /// 一元表达式
-pub struct UnaryExpression {
+pub struct PrefixUnaryExpression {
   operator : UnaryOperator
   prefix : Bool
   argument : Expression
@@ -664,16 +664,27 @@ pub struct UnaryExpression {
 ///|
 /// 一元操作符
 pub(all) enum UnaryOperator {
+  /// -
   Minus
+  /// +
   Plus
+  /// *
   Star
+  /// /
   Slash
+  /// %
   Percent
+  /// !
   Not
+  /// ~
   BitwiseNot
+  /// typeof
   Typeof
+  /// void
   Void
+  /// delete
   Delete
+  /// throw
   Throw
 } derive(Show, Eq, ToJson, FromJson)
 
@@ -688,7 +699,9 @@ pub struct UpdateExpression {
 ///|
 /// 更新操作符
 pub(all) enum UpdateOperator {
+  /// ++
   Increment
+  /// --  
   Decrement
 } derive(Show, Eq, ToJson, FromJson)
 
@@ -1494,7 +1507,7 @@ pub(all) enum TsLiteral {
   StringLiteral(String)
   BooleanLiteral(Bool)
   TemplateLiteral(TemplateLiteral)
-  UnaryExpression(UnaryExpression)
+  UnaryExpression(PrefixUnaryExpression)
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|

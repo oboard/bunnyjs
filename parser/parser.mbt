@@ -24,7 +24,7 @@ pub fn parse(tokens : Array[LexToken]) -> Program {
 ///|
 pub fn Parser::parse_program(self : Parser) -> Program {
   let body = []
-  while self.peek().kind != TokenKind::EndOfFile {
+  while self.peek().kind != TokenKind::EOF {
     let stmt = self.parse_statement()
     body.push(stmt)
   }
@@ -455,8 +455,8 @@ fn Parser::parse_unary(self : Parser) -> Expression {
     | TokenKind::Typeof
     | TokenKind::Plus
     | TokenKind::Minus
-    | TokenKind::Ampersand
-    | TokenKind::Pipe => {
+    | TokenKind::Tilde
+    | TokenKind::Exclamation => {
       self.advance()
       let argument = self.parse_unary()
       let operator = match token.kind {
@@ -465,11 +465,11 @@ fn Parser::parse_unary(self : Parser) -> Expression {
         TokenKind::Typeof => UnaryOperator::Typeof
         TokenKind::Plus => UnaryOperator::Plus
         TokenKind::Minus => UnaryOperator::Minus
-        TokenKind::Ampersand => UnaryOperator::BitwiseNot
-        TokenKind::Pipe => UnaryOperator::Not
+        TokenKind::Tilde => UnaryOperator::BitwiseNot
+        TokenKind::Exclamation => UnaryOperator::Not
         _ => UnaryOperator::Not // Should not happen
       }
-      Expression::UnaryExpression({ operator, prefix: true, argument })
+      Expression::PrefixUnaryExpression({ operator, prefix: true, argument })
     }
     TokenKind::PlusPlus | TokenKind::MinusMinus => {
       self.advance()
@@ -942,7 +942,7 @@ fn Parser::parse_block_statement(self : Parser) -> BlockStatement {
   self.consume(TokenKind::LBrace)
   let body = []
   while self.peek().kind != TokenKind::RBrace &&
-        self.peek().kind != TokenKind::EndOfFile {
+        self.peek().kind != TokenKind::EOF {
     body.push(self.parse_statement())
   }
   self.consume(TokenKind::RBrace)

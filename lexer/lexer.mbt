@@ -36,12 +36,12 @@ fn Lexer::tokenize(self : Lexer) -> Array[LexToken] {
   let input = self.input
   lex_tokens(input, self)
   let needs_eof = match self.tokens.last() {
-    Some(t) => t.kind != @tokens.TokenKind::EndOfFile
+    Some(t) => t.kind != @tokens.TokenKind::EOF
     None => true
   }
   if needs_eof {
     self.tokens.push({
-      kind: @tokens.TokenKind::EndOfFile,
+      kind: @tokens.TokenKind::EOF,
       value: "EOF",
       line: self.line,
       column: self.position - self.line_start + 1,

@@ -1,25 +1,4 @@
 ///|
-pub(all) struct Context {
-  scope : Map[String, JSValue]
-  parent : Context?
-} derive(Eq, ToJson, FromJson, Show)
-
-///|
-pub fn Context::new(parent? : Context) -> Context {
-  { scope: Map::new(), parent }
-}
-
-///|
-pub impl Compare for Context with compare(_, _) -> Int {
-  0
-}
-
-///|
-pub impl Hash for Context with hash_combine(self, hasher) -> Unit {
-  hasher.combine(self.scope.length())
-}
-
-///|
 pub fn Context::eval(self : Context, code : &Show) -> JSValue {
   let lex = code.to_string() |> @lexer.parse
   println(lex)
@@ -151,6 +130,96 @@ fn Context::evaluate(self : Context, node : @parser.NodeType) -> JSValue {
               }
             None => break Undefined
           }
+        }
+        PrefixUnaryExpression({ operator, argument, .. }) => {
+          let val = self.evaluate(Expression(argument))
+          match operator {
+            Not => Boolean(!val.is_truthy())
+            Minus =>
+              match val {
+                Number(n) => Number(-n)
+                String(s) =>
+                  Number(
+                    (-@strconv.parse_double(s)) catch {
+                      _ => @double.not_a_number
+                    },
+                  )
+                Boolean(b) => Number(-(if b { 1 } else { 0 }))
+                Null => Number(-0.0)
+                _ => Number(@double.not_a_number) // TODO: ToNumber
+              }
+            Plus =>
+              match val {
+                Number(n) => Number(n)
+                String(s) =>
+                  Number(
+                    @strconv.parse_double(s) catch {
+                      _ => @double.not_a_number
+                    },
+                  )
+                Boolean(b) => Number(if b { 1 } else { 0 })
+                Null => Number(0.0)
+                _ => Number(@double.not_a_number) // TODO: ToNumber
+              }
+            Typeof => {
+              let type_str = match val {
+                Undefined => "undefined"
+                Null => "object"
+                Boolean(_) => "boolean"
+                Number(_) => "number"
+                String(_) => "string"
+                Function(_) => "function"
+                Object(_) => "object"
+                BigInt(_) => "bigint"
+                Symbol(_) => "symbol"
+              }
+              String(type_str)
+            }
+            Void => Undefined
+            _ => Undefined
+          }
+        }
+        ObjectExpression({ properties }) => {
+          let obj_props = Map::new()
+          for prop in properties {
+            match prop {
+              ObjectProperty({ key, value, computed, .. }) => {
+                let key_str = if computed {
+                  let k = self.evaluate(Expression(key))
+                  match k {
+                    String(s) => s.to_string()
+                    _ => k.to_string()
+                  }
+                } else {
+                  match key {
+                    Identifier({ name, .. }) => name
+                    StringLiteral({ value }) => value.to_string()
+                    _ => "unknown"
+                  }
+                }
+                let val = self.evaluate(Expression(value))
+                obj_props.set(key_str, val)
+              }
+              _ => ()
+            }
+          }
+          Object({ properties: obj_props, prototype: Some(Null) })
+        }
+        ArrayLiteralExpression({ elements }) => {
+          let arr_props = Map::new()
+          let mut len = 0
+          for element in elements {
+            match element {
+              Expression(expr) => {
+                let val = self.evaluate(Expression(expr))
+                arr_props.set(len.to_string(), val)
+                len += 1
+              }
+              _ => ()
+            }
+          }
+          arr_props.set("length", Number(len.to_double()))
+          Object({ properties: arr_props, prototype: Some(Null) })
         }
         StringLiteral({ value }) => String(value)
         NumericLiteral({ value }) => Number(value)

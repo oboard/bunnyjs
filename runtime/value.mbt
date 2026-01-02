@@ -68,7 +68,7 @@ pub impl Hash for JSFunction with hash_combine(self, hasher) -> Unit {
 pub fn JSValue::is_truthy(self : JSValue) -> Bool {
   match self {
     String(s) => s.length() > 0
-    Number(n) => n != 0.0
+    Number(n) => n != 0.0 && not(n.is_nan())
     Boolean(b) => b
     BigInt(i) => i != 0
     Symbol(_) => true

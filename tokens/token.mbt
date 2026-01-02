@@ -171,7 +171,7 @@ pub(all) enum TokenKind {
 
   // Other
   /// EOF
-  EndOfFile
+  EOF
   /// Whitespace
   Whitespace
   /// LineTerminator
