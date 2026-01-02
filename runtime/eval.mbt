@@ -59,7 +59,7 @@ fn Context::evaluate(self : Context, node : @parser.NodeType) -> JSValue {
           let callee_val = self.evaluate(Expression(callee))
           match callee_val {
             Function(func) => {
-              let new_ctx = Context::new(parent=func.context)
+              let new_ctx = new(parent=func.context)
               for i, arg_expr in arguments {
                 if i < func.params.length() {
                   let arg_val = self.evaluate(Expression(arg_expr))

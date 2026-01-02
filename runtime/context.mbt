@@ -5,15 +5,15 @@ pub(all) struct Context {
 } derive(Eq, ToJson, FromJson, Show)
 
 ///|
+#as_free_fn(new)
 pub fn Context::new(parent? : Context) -> Context {
-  let scope = Map::new()
-  match parent {
-    None => {
-      scope.set("NaN", Number(@double.not_a_number))
-      scope.set("Infinity", Number(@double.infinity))
-      scope.set("undefined", Undefined)
-    }
-    Some(_) => ()
+  let scope = match parent {
+    None =>
+      {
+        "NaN": Number(@double.not_a_number),
+        "Infinity": Number(@double.infinity),
+      }
+    Some(_) => {}
   }
   { scope, parent }
 }

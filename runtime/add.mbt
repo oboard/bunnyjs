@@ -17,12 +17,8 @@ pub impl Add for JSValue with add(self, other) -> JSValue {
     match (self, other) {
       (String(a), String(b)) => String(a + b)
       (Number(a), Number(b)) => Number(a + b)
-      (String(a), Number(b)) =>
-        Number(
-          (@strconv.parse_double(a) + b) catch {
-            _ => @double.not_a_number
-          },
-        )
+      (String(a), Number(b)) => String("\{a}\{b}")
+      (Number(a), String(b)) => String("\{a}\{b}")
       (_, _) => Number(@double.not_a_number)
     }
   }
