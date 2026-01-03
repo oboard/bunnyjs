@@ -44,7 +44,7 @@
 - [ ] `String` Constructor & Methods
 - [ ] `Number` / `Boolean` Constructors
 - [ ] `Math` Object
-- [ ] `Date` Object
+- [ ] `Date` Object 
 - [ ] `RegExp` Object
 - [ ] `Error` Constructors (`Error`, `TypeError`, etc.)
 

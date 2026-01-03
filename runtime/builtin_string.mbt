@@ -36,25 +36,15 @@ pub fn init_string_prototype(string_proto_val : JSValue) -> Unit {
           _ => JSValue::String("")
         }
       })
-      let value_of_obj = JSFunction::{
-        name: Some("valueOf"),
-        params: [],
-        body: value_of_fn,
-        context: Context::new(),
-        properties: @hashmap.new(),
-        prototype: None,
-      }
+      let value_of_obj = JSFunction::new(name="valueOf", body=value_of_fn)
       obj.properties.set("valueOf", JSValue::Function(value_of_obj))
 
       // charAt
       let char_at_fn = Native(fn(_ctx, this_val, args) {
         let s = match this_val {
           String(str) => str
-          Object(o) =>
-            match o.properties.get("PrimitiveValue") {
-              Some(String(str)) => str
-              _ => ""
-            }
+          Object({ properties: { "PrimitiveValue": String(str), .. }, .. }) =>
+            str
           _ => ""
         }
         let pos = if args.length() > 0 {
@@ -92,29 +82,33 @@ pub fn init_string_prototype(string_proto_val : JSValue) -> Unit {
 
 ///|
 pub fn create_string_constructor(proto : JSValue) -> JSValue {
-  let ctor_fn = Native(fn(_ctx, _this_val, args) {
+  let ctor_fn = Native(fn(_ctx, this_val, args) {
     let val = if args.length() > 0 { args[0].to_string() } else { "" }
-    // If called as constructor (new String), should return object wrapping string.
-    // But we need to detect 'new'. 
-    // Current Native implementation doesn't easily distinguish 'new' vs 'call' unless we pass a flag or check 'this'.
-    // For now, let's assume if it returns a non-object, NewExpression handles wrapping?
-    // No, NewExpression expects the constructor to return an Object.
-
-    // We need a way to return a String Object.
-    // JSValue::Object with internal slot.
-
-    let str_obj = JSValue::Object({
-      properties: @hashmap.new(),
-      prototype: Some(proto),
-    })
-    match str_obj {
-      Object(o) => {
-        o.properties.set("PrimitiveValue", JSValue::String(val))
-        o.properties.set("length", JSValue::Number(val.length().to_double()))
-      }
-      _ => ()
+    let is_constructor = match this_val {
+      Object(o) =>
+        match o.prototype {
+          Some(p) =>
+            match (p, proto) {
+              (Object(a), Object(b)) =>
+                physical_equal(a.properties, b.properties)
+              _ => false
+            }
+          None => false
+        }
+      _ => false
     }
-    str_obj
+    if is_constructor {
+      match this_val {
+        Object(o) => {
+          o.properties.set("PrimitiveValue", JSValue::String(val))
+          o.properties.set("length", JSValue::Number(val.length().to_double()))
+        }
+        _ => ()
+      }
+      JSValue::String(val)
+    } else {
+      JSValue::String(val)
+    }
   })
   let ctor_obj = JSFunction::{
     name: Some("String"),

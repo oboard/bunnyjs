@@ -442,54 +442,67 @@ fn Context::evaluate(
         StringLiteral({ value }) => String(value)
         BooleanLiteral({ value }) => Boolean(value)
         NullLiteral => Null
-        PrefixUnaryExpression({ operator, argument, .. }) => {
-          let val = self.evaluate(Expression(argument))
+        PrefixUnaryExpression({ operator, argument, .. }) =>
           match operator {
-            Not => Boolean(!val.is_truthy())
-            Minus =>
-              match val {
-                Number(n) => Number(-n)
-                String(s) =>
-                  Number(
-                    (-@strconv.parse_double(s)) catch {
-                      _ => @double.not_a_number
-                    },
-                  )
-                Boolean(b) => Number(-(if b { 1 } else { 0 }))
-                Null => Number(-0.0)
-                _ => Number(@double.not_a_number) // TODO: ToNumber
+            Delete =>
+              match argument {
+                MemberExpression({ object, property, computed, .. }) => {
+                  let obj_val = self.evaluate(Expression(object))
+                  let prop_name = if computed {
+                    self.evaluate(Expression(property)).to_string()
+                  } else {
+                    match property {
+                      Identifier({ name, .. }) => name
+                      _ => "unknown"
+                    }
+                  }
+                  match obj_val {
+                    Object(obj) => {
+                      obj.properties.remove(prop_name)
+                      Boolean(true)
+                    }
+                    Function(func) => {
+                      func.properties.remove(prop_name)
+                      Boolean(true)
+                    }
+                    _ => Boolean(true)
+                  }
+                }
+                Identifier({ name, .. }) => {
+                  self.scope.remove(name)
+                  Boolean(true)
+                }
+                _ => {
+                  self.evaluate(Expression(argument)) |> ignore
+                  Boolean(true)
+                }
               }
-            Plus =>
-              match val {
-                Number(n) => Number(n)
-                String(s) =>
-                  Number(
-                    @strconv.parse_double(s) catch {
-                      _ => @double.not_a_number
-                    },
-                  )
-                Boolean(b) => Number(if b { 1 } else { 0 })
-                Null => Number(0.0)
-                _ => Number(@double.not_a_number) // TODO: ToNumber
+            _ => {
+              let val = self.evaluate(Expression(argument))
+              match operator {
+                Not => Boolean(!val.is_truthy())
+                Minus => Number(-val.to_number())
+                Plus => Number(val.to_number())
+                BitwiseNot => val.bitwise_not()
+                Typeof => {
+                  let type_str = match val {
+                    Undefined => "undefined"
+                    Null => "object"
+                    Boolean(_) => "boolean"
+                    Number(_) => "number"
+                    String(_) => "string"
+                    Function(_) => "function"
+                    Object(_) => "object"
+                    BigInt(_) => "bigint"
+                    Symbol(_) => "symbol"
+                  }
+                  String(type_str)
+                }
+                Void => Undefined
+                _ => Undefined
               }
-            Typeof => {
-              let type_str = match val {
-                Undefined => "undefined"
-                Null => "object"
-                Boolean(_) => "boolean"
-                Number(_) => "number"
-                String(_) => "string"
-                Function(_) => "function"
-                Object(_) => "object"
-                BigInt(_) => "bigint"
-                Symbol(_) => "symbol"
-              }
-              String(type_str)
             }
-            Void => Undefined
-            _ => Undefined
           }
-        }
         ObjectExpression({ properties }) => {
           let obj_props = @hashmap.new()
           for prop in properties {

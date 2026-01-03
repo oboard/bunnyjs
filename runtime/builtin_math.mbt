@@ -1,0 +1,243 @@
+///|
+pub fn create_math_object(object_proto : JSValue) -> JSValue {
+  let math_props = @hashmap.new()
+
+  // Constants
+  math_props.set("E", JSValue::Number(2.718281828459045))
+  math_props.set("LN10", JSValue::Number(2.302585092994046))
+  math_props.set("LN2", JSValue::Number(0.6931471805599453))
+  math_props.set("LOG10E", JSValue::Number(0.4342944819032518))
+  math_props.set("LOG2E", JSValue::Number(1.4426950408889634))
+  math_props.set("PI", JSValue::Number(3.141592653589793))
+  math_props.set("SQRT1_2", JSValue::Number(0.7071067811865476))
+  math_props.set("SQRT2", JSValue::Number(1.4142135623730951))
+
+  // Methods
+  let wrap_unary = fn(op : (Double) -> Double) {
+    Native(fn(_ctx, _this_val, args) {
+      if args.length() > 0 {
+        let n = args[0].to_number()
+        JSValue::Number(op(n))
+      } else {
+        JSValue::Number(@double.not_a_number)
+      }
+    })
+  }
+  let wrap_binary = fn(op : (Double, Double) -> Double) {
+    Native(fn(_ctx, _this_val, args) {
+      let x = if args.length() > 0 {
+        args[0].to_number()
+      } else {
+        @double.not_a_number
+      }
+      let y = if args.length() > 1 {
+        args[1].to_number()
+      } else {
+        @double.not_a_number
+      }
+      JSValue::Number(op(x, y))
+    })
+  }
+  let install_method = fn(name : String, func : FunctionBody) {
+    math_props.set(
+      name,
+      JSValue::Function(JSFunction::{
+        name: Some(name),
+        params: [],
+        body: func,
+        context: Context::new(),
+        properties: @hashmap.new(),
+        prototype: None,
+      }),
+    )
+  }
+
+  // abs
+  install_method("abs", wrap_unary(fn(n) { if n < 0.0 { -n } else { n } }))
+
+  // acos
+  install_method("acos", wrap_unary(@math.acos))
+
+  // acosh
+  install_method("acosh", wrap_unary(@math.acosh))
+
+  // asin
+  install_method("asin", wrap_unary(@math.asin))
+
+  // asinh
+  install_method("asinh", wrap_unary(@math.asinh))
+
+  // atan
+  install_method("atan", wrap_unary(@math.atan))
+
+  // atanh
+  install_method("atanh", wrap_unary(@math.atanh))
+
+  // atan2
+  install_method("atan2", wrap_binary(@math.atan2))
+
+  // cbrt
+  install_method("cbrt", wrap_unary(@math.cbrt))
+
+  // ceil
+  install_method("ceil", wrap_unary(@math.ceil))
+
+  // clz32
+  // TODO: Implement clz32
+
+  // cos
+  install_method("cos", wrap_unary(@math.cos))
+
+  // cosh
+  install_method("cosh", wrap_unary(@math.cosh))
+
+  // exp
+  install_method("exp", wrap_unary(@math.exp))
+
+  // expm1
+  install_method("expm1", wrap_unary(@math.expm1))
+
+  // floor
+  install_method("floor", wrap_unary(@math.floor))
+
+  // fround
+  // TODO: Implement fround
+
+  // hypot
+  // JS hypot takes any number of arguments, @math.hypot takes 2
+  let hypot_fn = Native(fn(_ctx, _this_val, args) {
+    let mut result = 0.0
+    let mut i = 0
+    let len = args.length()
+    while i < len {
+      let n = args[i].to_number()
+      if n.is_nan() {
+        result = @double.not_a_number
+        break
+      }
+      // Using generic Pythagorean addition: sqrt(sum(squares))
+      // Or iteratively using hypot?
+      // JS Spec: Math.hypot(v1, v2, ...) = sqrt(v1^2 + v2^2 + ...)
+      // But careful about overflow.
+      // If we use @math.hypot iteratively: hypot(a, b, c) = hypot(hypot(a, b), c)
+      // This preserves precision and avoids overflow.
+      if i == 0 {
+        result = n.abs() // hypot(n) = abs(n)
+      } else {
+        result = @math.hypot(result, n)
+      }
+      i = i + 1
+    }
+    JSValue::Number(result)
+  })
+  install_method("hypot", hypot_fn)
+
+  // imul
+  // TODO: Implement imul
+
+  // log
+  install_method("log", wrap_unary(@math.ln))
+
+  // log1p
+  install_method("log1p", wrap_unary(@math.ln_1p))
+
+  // log10
+  install_method("log10", wrap_unary(@math.log10))
+
+  // log2
+  install_method("log2", wrap_unary(@math.log2))
+
+  // pow
+  install_method("pow", wrap_binary(@math.pow))
+
+  // round
+  install_method("round", wrap_unary(@math.round))
+
+  // sign
+  let sign_fn = Native(fn(_ctx, _this_val, args) {
+    if args.length() > 0 {
+      let n = args[0].to_number()
+      if n.is_nan() {
+        JSValue::Number(@double.not_a_number)
+      } else if n == 0.0 {
+        JSValue::Number(n) // Preserves +0 and -0
+      } else if n > 0.0 {
+        JSValue::Number(1.0)
+      } else {
+        JSValue::Number(-1.0)
+      }
+    } else {
+      JSValue::Number(@double.not_a_number)
+    }
+  })
+  install_method("sign", sign_fn)
+
+  // sin
+  install_method("sin", wrap_unary(@math.sin))
+
+  // sinh
+  install_method("sinh", wrap_unary(@math.sinh))
+
+  // sqrt
+  install_method("sqrt", wrap_unary(fn(n) { @math.pow(n, 0.5) }))
+
+  // tan
+  install_method("tan", wrap_unary(@math.tan))
+
+  // tanh
+  install_method("tanh", wrap_unary(@math.tanh))
+
+  // trunc
+  install_method("trunc", wrap_unary(@math.trunc))
+
+  // max
+  let max_fn = Native(fn(_ctx, _this_val, args) {
+    let mut max_val = @double.neg_infinity
+    let mut i = 0
+    let len = args.length()
+    while i < len {
+      let n = args[i].to_number()
+      if n.is_nan() {
+        max_val = @double.not_a_number
+        break
+      }
+      if n > max_val {
+        max_val = n
+      }
+      i = i + 1
+    }
+    JSValue::Number(max_val)
+  })
+  install_method("max", max_fn)
+
+  // min
+  let min_fn = Native(fn(_ctx, _this_val, args) {
+    let mut min_val = @double.infinity
+    let mut i = 0
+    let len = args.length()
+    while i < len {
+      let n = args[i].to_number()
+      if n.is_nan() {
+        min_val = @double.not_a_number
+        break
+      }
+      if n < min_val {
+        min_val = n
+      }
+      i = i + 1
+    }
+    JSValue::Number(min_val)
+  })
+  install_method("min", min_fn)
+
+  // random
+  let random_fn = Native(fn(_ctx, _this_val, _args) {
+    // TODO: Use a real random number generator
+    JSValue::Number(0.5)
+  })
+  install_method("random", random_fn)
+  JSValue::Object(JSObject::{
+    properties: math_props,
+    prototype: Some(object_proto),
+  })
+}

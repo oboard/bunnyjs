@@ -28,6 +28,12 @@ pub impl Show for JSValue with output(self, logger) {
 }
 
 ///|
+pub fn JSValue::bitwise_not(self : JSValue) -> JSValue {
+  let n = self.to_int32()
+  JSValue::Number(n.lxor(-1).to_double())
+}
+
+///|
 pub(all) enum FunctionBody {
   User(@parser.BlockStatement)
   Native((Context, JSValue, Array[JSValue]) -> JSValue)
@@ -59,6 +65,25 @@ pub(all) struct JSFunction {
 } derive(Show, Eq, ToJson)
 
 ///|
+pub fn JSFunction::new(
+  name? : String,
+  params? : Array[String],
+  body~ : FunctionBody,
+  context? : Context,
+  properties? : @hashmap.HashMap[String, JSValue],
+  prototype? : JSValue,
+) -> JSFunction {
+  {
+    name,
+    params: params.unwrap_or([]),
+    body,
+    context: context.unwrap_or(Context::new()),
+    properties: properties.unwrap_or(@hashmap.new()),
+    prototype,
+  }
+}
+
+///|
 pub impl FromJson for JSFunction with from_json(_, _) {
   // Dummy implementation
   let ctx = Context::{ scope: @hashmap.new(), parent: None }
@@ -75,7 +100,8 @@ pub impl FromJson for JSFunction with from_json(_, _) {
 ///|
 pub(all) struct JSObject {
   properties : @hashmap.HashMap[String, JSValue]
-  prototype : JSValue? // Optional prototype? Or just JSValue
+  /// prototype 需要是 Optional（JSValue?），原因：JavaScript 中确实存在“没有原型”的对象。
+  prototype : JSValue?
 } derive(Show, Eq)
 
 ///|
@@ -172,11 +198,32 @@ pub fn JSValue::is_truthy(self : JSValue) -> Bool {
 
 ///|
 pub fn JSValue::to_int32(self : JSValue) -> Int {
+  let n = self.to_number()
+  if n.is_nan() || n.is_inf() {
+    0
+  } else {
+    n.to_int()
+  }
+}
+
+///|
+pub fn JSValue::to_number(self : JSValue) -> Double {
   match self {
-    Number(n) => n.to_int()
-    Boolean(true) => 1
-    Boolean(false) => 0
-    String(s) => @strconv.parse_int(s.to_string()) catch { _ => 0 }
-    _ => 0
+    Number(n) => n
+    Boolean(true) => 1.0
+    Boolean(false) => 0.0
+    String(s) =>
+      @strconv.parse_double(s.to_string()) catch {
+        _ => @double.not_a_number
+      }
+    Null => 0.0
+    Undefined => @double.not_a_number
+    Object(_) => @double.not_a_number // Simplified
+    Function(_) => @double.not_a_number
+    BigInt(i) =>
+      @strconv.parse_double(i.to_string()) catch {
+        _ => @double.not_a_number
+      }
+    Symbol(_) => @double.not_a_number // TypeError in JS usually
   }
 }

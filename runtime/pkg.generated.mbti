@@ -9,13 +9,23 @@ import(
 )
 
 // Values
+pub fn create_boolean_constructor(JSValue) -> JSValue
+
 pub fn create_function_constructor(JSValue) -> JSValue
+
+pub fn create_math_object(JSValue) -> JSValue
+
+pub fn create_number_constructor(JSValue) -> JSValue
 
 pub fn create_string_constructor(JSValue) -> JSValue
 
 pub fn init_array_prototype(JSValue) -> Unit
 
+pub fn init_boolean_prototype(JSValue) -> Unit
+
 pub fn init_function_prototype(JSValue) -> Unit
+
+pub fn init_number_prototype(JSValue) -> Unit
 
 pub fn init_object_prototype(JSValue) -> Unit
 
@@ -66,6 +76,7 @@ pub(all) struct JSFunction {
   properties : @hashmap.HashMap[String, JSValue]
   prototype : JSValue?
 }
+pub fn JSFunction::new(name? : String, params? : Array[String], body~ : FunctionBody, context? : Context, properties? : @hashmap.HashMap[String, JSValue], prototype? : JSValue) -> Self
 pub impl Compare for JSFunction
 pub impl Eq for JSFunction
 pub impl Hash for JSFunction
@@ -96,6 +107,7 @@ pub(all) enum JSValue {
   Undefined
 }
 pub fn JSValue::bitwise_and(Self, Self) -> Self
+pub fn JSValue::bitwise_not(Self) -> Self
 pub fn JSValue::bitwise_or(Self, Self) -> Self
 pub fn JSValue::bitwise_xor(Self, Self) -> Self
 pub fn JSValue::get_property(Self, String) -> Self
@@ -107,6 +119,7 @@ pub fn JSValue::right_shift(Self, Self) -> Self
 pub fn JSValue::set_property(Self, String, Self) -> Unit
 pub fn JSValue::strict_equal(Self, Self) -> Bool
 pub fn JSValue::to_int32(Self) -> Int
+pub fn JSValue::to_number(Self) -> Double
 pub fn JSValue::unsigned_right_shift(Self, Self) -> Self
 pub fn JSValue::unstrict_equal(Self, Self) -> Bool
 pub impl Add for JSValue

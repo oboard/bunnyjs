@@ -167,6 +167,38 @@ pub fn Context::create_global() -> Context {
   let string_ctor_val = create_string_constructor(string_proto_val)
   string_proto_props.set("constructor", string_ctor_val)
   ctx.scope.set("String", string_ctor_val)
+
+  // Number.prototype
+  let number_proto_props = @hashmap.new()
+  let number_proto = JSObject::{
+    properties: number_proto_props,
+    prototype: Some(object_proto_val),
+  }
+  let number_proto_val = JSValue::Object(number_proto)
+  init_number_prototype(number_proto_val)
+
+  // Number Constructor
+  let number_ctor_val = create_number_constructor(number_proto_val)
+  number_proto_props.set("constructor", number_ctor_val)
+  ctx.scope.set("Number", number_ctor_val)
+
+  // Boolean.prototype
+  let boolean_proto_props = @hashmap.new()
+  let boolean_proto = JSObject::{
+    properties: boolean_proto_props,
+    prototype: Some(object_proto_val),
+  }
+  let boolean_proto_val = JSValue::Object(boolean_proto)
+  init_boolean_prototype(boolean_proto_val)
+
+  // Boolean Constructor
+  let boolean_ctor_val = create_boolean_constructor(boolean_proto_val)
+  boolean_proto_props.set("constructor", boolean_ctor_val)
+  ctx.scope.set("Boolean", boolean_ctor_val)
+
+  // Math Object
+  let math_val = create_math_object(object_proto_val)
+  ctx.scope.set("Math", math_val)
   ctx
 }
 
@@ -190,6 +222,24 @@ pub fn Context::get_property(
             }
           _ => Undefined
         }
+      }
+    Number(_) =>
+      match self.resolve("Number") {
+        Function(f) =>
+          match f.properties.get("prototype") {
+            Some(proto) => proto.get_property(name)
+            None => Undefined
+          }
+        _ => Undefined
+      }
+    Boolean(_) =>
+      match self.resolve("Boolean") {
+        Function(f) =>
+          match f.properties.get("prototype") {
+            Some(proto) => proto.get_property(name)
+            None => Undefined
+          }
+        _ => Undefined
       }
     _ => Undefined
   }
