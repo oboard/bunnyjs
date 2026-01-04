@@ -506,6 +506,7 @@ fn Context::evaluate(
                     Object(_) => "object"
                     BigInt(_) => "bigint"
                     Symbol(_) => "symbol"
+                    Internal(_) => "object"
                   }
                   String(type_str)
                 }
@@ -582,7 +583,7 @@ fn Context::evaluate(
           }
           let func_props = @hashmap.new()
           let func = JSFunction::new(
-            name?=name,
+            name?,
             params=param_names,
             body=User(body),
             context=self,

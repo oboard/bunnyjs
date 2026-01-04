@@ -4,7 +4,8 @@
   "deps": {
     "Lampese/moonbit-chalk": "0.5.0",
     "oboard/readline": "0.1.6",
-    "TheWaWaR/clap": "0.2.6"
+    "TheWaWaR/clap": "0.2.6",
+    "moonbitlang/regexp": "0.3.4"
   },
   "readme": "README.mbt.md",
   "repository": "",

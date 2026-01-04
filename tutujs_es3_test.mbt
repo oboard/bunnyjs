@@ -104,6 +104,59 @@ test "ternary operator" {
 }
 
 ///|
+test "ternary operator nested" {
+  let code =
+    #|
+    #| var x = 10;
+    #| var y = x > 15 ? "huge" : (x > 5 ? "big" : "small");
+    #| y;
+    #|
+  @json.inspect(@runtime.Context::new().eval(code), content=["String", "big"])
+}
+
+///|
+test "ternary operator truthiness" {
+  let code =
+    #|
+    #| var a = 1 ? "true" : "false";
+    #| var b = 0 ? "true" : "false";
+    #| var c = "" ? "true" : "false";
+    #| var d = "hello" ? "true" : "false";
+    #| a + b + c + d;
+    #|
+  @json.inspect(@runtime.Context::new().eval(code), content=[
+    "String", "truefalsefalsetrue",
+  ])
+}
+
+///|
+test "ternary operator precedence" {
+  let code =
+    #|
+    #| var a = true;
+    #| var b = false;
+    #| var x = a ? b ? "1" : "2" : "3"; // true ? (false ? "1" : "2") : "3" -> "2"
+    #| x;
+    #|
+  @json.inspect(@runtime.Context::new().eval(code), content=["String", "2"])
+}
+
+///|
+test "instanceof operator" {
+  let code =
+    #|
+    #| var arr = [1, 2, 3];
+    #| var isArr = arr instanceof Array;
+    #| var isObj = arr instanceof Object;
+    #| var isStr = arr instanceof String;
+    #| isArr ? (isObj ? (isStr ? "all" : "arr+obj") : "arr") : "none";
+    #|
+  @json.inspect(@runtime.Context::create_global().eval(code), content=[
+    "String", "arr+obj",
+  ])
+}
+
+///|
 test "for loop (fix verification)" {
   let code =
     #|

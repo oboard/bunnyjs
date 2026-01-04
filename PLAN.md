@@ -29,7 +29,7 @@
 - [x] `void`
 - [x] `in`
 - [x] `instanceof` (Basic stub implemented)
-- [ ] Conditional (Ternary) `? :`
+- [x] Conditional (Ternary) `? :`
 - [x] `new`
 - [x] `this`
 - [x] `delete`

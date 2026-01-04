@@ -9,7 +9,54 @@ pub(all) enum JSValue {
   Object(JSObject)
   Null
   Undefined
+  Internal(JSInternal)
 } derive(Eq, ToJson, Compare, FromJson, Hash)
+
+///|
+pub(all) enum JSInternal {
+  Date(@time.ZonedDateTime)
+  RegExp(@regexp.Regexp, String)
+}
+
+///|
+pub impl Eq for JSInternal with equal(self, other) {
+  match (self, other) {
+    (Date(d1), Date(d2)) => d1.to_string() == d2.to_string()
+    (RegExp(_, s1), RegExp(_, s2)) => s1 == s2
+    _ => false
+  }
+}
+
+///|
+pub impl Compare for JSInternal with compare(_self, _other) {
+  0
+}
+
+///|
+pub impl ToJson for JSInternal with to_json(_self) {
+  JSValue::Null.to_json()
+}
+
+///|
+pub impl FromJson for JSInternal with from_json(_v, _path) {
+  abort("Cannot deserialize internal value")
+}
+
+///|
+pub impl Hash for JSInternal with hash_combine(self, hasher) {
+  match self {
+    Date(d) => hasher.combine(d.to_string())
+    RegExp(_, s) => hasher.combine(s)
+  }
+}
+
+///|
+pub impl Show for JSInternal with output(self, logger) {
+  match self {
+    Date(d) => logger.write_string("Date(" + d.to_string() + ")")
+    RegExp(_, s) => logger.write_string("RegExp(/" + s + "/)")
+  }
+}
 
 ///|
 pub impl Show for JSValue with output(self, logger) {
@@ -24,6 +71,7 @@ pub impl Show for JSValue with output(self, logger) {
     Object(_) => logger.write_string("[object Object]")
     Null => logger.write_string("null")
     Undefined => logger.write_string("undefined")
+    Internal(i) => i.output(logger)
   }
 }
 
@@ -193,6 +241,7 @@ pub fn JSValue::is_truthy(self : JSValue) -> Bool {
     Object(_) => true
     Null => false
     Undefined => false
+    Internal(_) => true
   }
 }
 
@@ -220,6 +269,7 @@ pub fn JSValue::to_number(self : JSValue) -> Double {
     Undefined => @double.not_a_number
     Object(_) => @double.not_a_number // Simplified
     Function(_) => @double.not_a_number
+    Internal(_) => @double.not_a_number
     BigInt(i) =>
       @strconv.parse_double(i.to_string()) catch {
         _ => @double.not_a_number

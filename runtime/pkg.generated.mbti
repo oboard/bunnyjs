@@ -5,17 +5,23 @@ import(
   "moonbitlang/core/bigint"
   "moonbitlang/core/hashmap"
   "moonbitlang/core/json"
+  "moonbitlang/regexp"
   "oboard/tutujs/parser"
+  "oboard/tutujs/time"
 )
 
 // Values
 pub fn create_boolean_constructor(JSValue) -> JSValue
+
+pub fn create_date_object(JSValue) -> JSValue
 
 pub fn create_function_constructor(JSValue) -> JSValue
 
 pub fn create_math_object(JSValue) -> JSValue
 
 pub fn create_number_constructor(JSValue) -> JSValue
+
+pub fn create_regexp_object(JSValue) -> JSValue
 
 pub fn create_string_constructor(JSValue) -> JSValue
 
@@ -84,6 +90,17 @@ pub impl Show for JSFunction
 pub impl ToJson for JSFunction
 pub impl @json.FromJson for JSFunction
 
+pub(all) enum JSInternal {
+  Date(@time.ZonedDateTime)
+  RegExp(@regexp.Regexp, String)
+}
+pub impl Compare for JSInternal
+pub impl Eq for JSInternal
+pub impl Hash for JSInternal
+pub impl Show for JSInternal
+pub impl ToJson for JSInternal
+pub impl @json.FromJson for JSInternal
+
 pub(all) struct JSObject {
   properties : @hashmap.HashMap[String, JSValue]
   prototype : JSValue?
@@ -105,6 +122,7 @@ pub(all) enum JSValue {
   Object(JSObject)
   Null
   Undefined
+  Internal(JSInternal)
 }
 pub fn JSValue::bitwise_and(Self, Self) -> Self
 pub fn JSValue::bitwise_not(Self) -> Self
