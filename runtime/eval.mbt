@@ -3,6 +3,7 @@ pub suberror EvalError {
   Return(JSValue)
   Break(String?)
   Continue(String?)
+  Throw(JSValue)
 } derive(Show)
 
 ///|
@@ -19,6 +20,7 @@ pub fn Context::eval(self : Context, code : &Show) -> JSValue {
       EvalError::Return(v) => return v // Top-level return
       EvalError::Break(_) => () // Illegal at top-level in strict JS, but lenient here
       EvalError::Continue(_) => () // Illegal
+      EvalError::Throw(v) => abort("Uncaught exception: " + v.to_string())
     }
   }
   res
@@ -50,6 +52,7 @@ pub fn Context::invoke(
         EvalError::Return(v) => v
         EvalError::Break(l) => raise EvalError::Break(l)
         EvalError::Continue(l) => raise EvalError::Continue(l)
+        EvalError::Throw(v) => raise EvalError::Throw(v)
       }
     }
     Native(f) => f(self, this_val, args)
@@ -61,6 +64,8 @@ fn Context::evaluate(
   self : Context,
   node : @parser.NodeType,
 ) -> JSValue raise EvalError {
+  let current_labels = self.pending_labels
+  self.pending_labels = []
   match node {
     Declaration(declaration) =>
       match declaration {
@@ -165,6 +170,67 @@ fn Context::evaluate(
           }
           raise EvalError::Continue(l)
         }
+        ThrowStatement({ argument }) => {
+          let val = self.evaluate(Expression(argument))
+          raise EvalError::Throw(val)
+        }
+        TryStatement({ block, handler, finalizer }) => {
+          let mut res = JSValue::Undefined
+          let mut flow_interrupt : EvalError? = None
+          try {
+            res = self.evaluate(Statement(BlockStatement(block)))
+          } catch {
+            EvalError::Throw(v) => {
+              match handler {
+                Some(h) => {
+                  let catch_ctx = new(parent=self)
+                  match h.param {
+                    Some(Identifier(id)) => catch_ctx.scope.set(id.name, v)
+                    _ => ()
+                  }
+                  try {
+                    res = catch_ctx.evaluate(Statement(BlockStatement(h.body)))
+                  } catch {
+                    e => flow_interrupt = Some(e)
+                  }
+                }
+                None => flow_interrupt = Some(EvalError::Throw(v))
+              }
+            }
+            e => flow_interrupt = Some(e)
+          }
+          match finalizer {
+            Some(f) => {
+              try {
+                self.evaluate(Statement(BlockStatement(f))) |> ignore
+              } catch {
+                e => flow_interrupt = Some(e)
+              }
+            }
+            None => ()
+          }
+          match flow_interrupt {
+            Some(e) => raise e
+            None => res
+          }
+        }
+        LabeledStatement({ label, body }) => {
+          self.pending_labels = current_labels
+          self.pending_labels.push(label.name)
+          try {
+             let res = self.evaluate(Statement(body))
+             res
+          } catch {
+             EvalError::Break(l) => {
+                if l == Some(label.name) {
+                   Undefined
+                } else {
+                   raise EvalError::Break(l)
+                }
+             }
+             e => raise e
+          }
+        }
         BlockStatement({ body, .. }) => {
           let mut res = JSValue::Undefined
           for stmt in body {
@@ -182,10 +248,17 @@ fn Context::evaluate(
                 }
               EvalError::Continue(label) =>
                 match label {
-                  Some(_) => raise EvalError::Continue(label)
+                  Some(l) => {
+                    let mut found = false
+                    for cl in current_labels {
+                      if cl == l { found = true; break }
+                    }
+                    if found { continue } else { raise EvalError::Continue(label) }
+                  }
                   None => continue
                 }
               EvalError::Return(v) => raise EvalError::Return(v)
+              EvalError::Throw(v) => raise EvalError::Throw(v)
             }
           }
           Undefined
@@ -200,10 +273,17 @@ fn Context::evaluate(
                 }
               EvalError::Continue(label) =>
                 match label {
-                  Some(_) => raise EvalError::Continue(label)
+                   Some(l) => {
+                    let mut found = false
+                    for cl in current_labels {
+                      if cl == l { found = true; break }
+                    }
+                    if found { continue } else { raise EvalError::Continue(label) }
+                  }
                   None => continue
                 }
               EvalError::Return(v) => raise EvalError::Return(v)
+              EvalError::Throw(v) => raise EvalError::Throw(v)
             }
             if not(self.evaluate(Expression(test_)).is_truthy()) {
               break
@@ -244,10 +324,17 @@ fn Context::evaluate(
                 }
               EvalError::Continue(label) =>
                 match label {
-                  Some(_) => raise EvalError::Continue(label)
+                  Some(l) => {
+                    let mut found = false
+                    for cl in current_labels {
+                      if cl == l { found = true; break }
+                    }
+                    if found { () } else { raise EvalError::Continue(label) }
+                  }
                   None => ()
                 }
               EvalError::Return(v) => raise EvalError::Return(v)
+              EvalError::Throw(v) => raise EvalError::Throw(v)
             }
             // Update
             match update {
@@ -269,10 +356,11 @@ fn Context::evaluate(
               for stmt in case_.consequent {
                 try self.evaluate(Statement(stmt)) |> ignore catch {
                   EvalError::Break(_) => break // Break breaks out of switch
-                  // Continue inside switch applies to enclosing loop, propagate it? 
+                  // Continue inside switch applies to enclosing loop, propagate it?
                   // JS semantics: continue in switch applies to loop.
                   EvalError::Continue(l) => raise EvalError::Continue(l)
                   EvalError::Return(v) => raise EvalError::Return(v)
+                  EvalError::Throw(v) => raise EvalError::Throw(v)
                 }
               }
             } else {
@@ -290,6 +378,7 @@ fn Context::evaluate(
                     EvalError::Break(_) => return Undefined // Break switch
                     EvalError::Continue(l) => raise EvalError::Continue(l)
                     EvalError::Return(v) => raise EvalError::Return(v)
+                    EvalError::Throw(v) => raise EvalError::Throw(v)
                   }
                 }
               }
@@ -343,6 +432,7 @@ fn Context::evaluate(
                     EvalError::Return(v) => ret_val = v
                     EvalError::Break(l) => raise EvalError::Break(l)
                     EvalError::Continue(l) => raise EvalError::Continue(l)
+                    EvalError::Throw(v) => raise EvalError::Throw(v)
                   }
                   ret_val
                 }
@@ -503,10 +593,9 @@ fn Context::evaluate(
                     Number(_) => "number"
                     String(_) => "string"
                     Function(_) => "function"
-                    Object(_) => "object"
                     BigInt(_) => "bigint"
                     Symbol(_) => "symbol"
-                    Internal(_) => "object"
+                    Object(_) | Internal(_) => "object"
                   }
                   String(type_str)
                 }

@@ -179,6 +179,7 @@ pub(all) enum Weekday {
   Saturday
   Sunday
 }
+pub fn Weekday::value(Self) -> Int
 pub impl Eq for Weekday
 pub impl Show for Weekday
 

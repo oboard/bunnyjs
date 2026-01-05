@@ -134,7 +134,7 @@ pub fn JSFunction::new(
 ///|
 pub impl FromJson for JSFunction with from_json(_, _) {
   // Dummy implementation
-  let ctx = Context::{ scope: @hashmap.new(), parent: None }
+  let ctx = Context::{ scope: @hashmap.new(), parent: None, pending_labels: [] }
   {
     name: None,
     params: [],

@@ -2,6 +2,7 @@
 pub(all) struct Context {
   scope : @hashmap.HashMap[String, JSValue]
   parent : Context?
+  mut pending_labels : Array[String]
 } derive(Show)
 
 ///|
@@ -31,7 +32,7 @@ pub fn Context::new(parent? : Context) -> Context {
     }
     Some(_) => ()
   }
-  { scope, parent }
+  { scope, parent, pending_labels: [] }
 }
 
 ///|
@@ -197,6 +198,14 @@ pub fn Context::create_global() -> Context {
   // Math Object
   let math_val = create_math_object(object_proto_val)
   ctx.scope.set("Math", math_val)
+
+  // Date Object
+  let date_val = create_date_object(object_proto_val)
+  ctx.scope.set("Date", date_val)
+
+  // RegExp Object
+  let regexp_val = create_regexp_object(object_proto_val)
+  ctx.scope.set("RegExp", regexp_val)
   ctx
 }
 
