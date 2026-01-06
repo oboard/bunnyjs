@@ -6,39 +6,39 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
       let push_fn = Native(fn(_ctx, this_val, args) {
         match this_val {
           Object(o) => {
-            let mut len = match o.properties.get("length") {
-              Some(Number(n)) => n
+            let mut len = match o["length"] {
+              Number(n) => n
               _ => 0.0
             }
             for arg in args {
-              o.properties.set(len.to_string(), arg)
+              o[len.to_string()] = arg
               len = len + 1.0
             }
-            o.properties.set("length", Number(len))
+            o["length"] = Number(len)
             Number(len)
           }
           _ => Number(0.0) // Should throw TypeError?
         }
       })
       let push_obj = JSFunction::new(name="push", body=push_fn)
-      obj.properties.set("push", JSValue::Function(push_obj))
+      obj["push"] = JSValue::Function(push_obj)
 
       // pop
       let pop_fn = Native(fn(_ctx, this_val, _args) {
         match this_val {
           Object(o) => {
-            let len = match o.properties.get("length") {
-              Some(Number(n)) => n
+            let len = match o["length"] {
+              Number(n) => n
               _ => 0.0
             }
             if len > 0.0 {
               let new_len = len - 1.0
-              let val = o.properties.get(new_len.to_string())
+              let val = o[new_len.to_string()]
               o.properties.remove(new_len.to_string())
-              o.properties.set("length", Number(new_len))
-              val.unwrap_or(Undefined)
+              o["length"] = Number(new_len)
+              val
             } else {
-              o.properties.set("length", Number(0.0))
+              o["length"] = Number(0.0)
               Undefined
             }
           }
@@ -46,7 +46,7 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
         }
       })
       let pop_obj = JSFunction::new(name="pop", body=pop_fn)
-      obj.properties.set("pop", JSValue::Function(pop_obj))
+      obj["pop"] = JSValue::Function(pop_obj)
     }
     _ => ()
   }

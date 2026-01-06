@@ -230,14 +230,12 @@ test "date methods" {
   @json.inspect(ctx.eval("new Date(1600000000000).toLocaleString()"), content=[
     "String", "Sun Sep 13 2020 12:26:40 GMT+0000 (UTC)",
   ])
-  @json.inspect(
-    ctx.eval("new Date(1600000000000).toLocaleDateString()"),
-    content=["String", "Sun Sep 13 2020"],
-  )
-  @json.inspect(
-    ctx.eval("new Date(1600000000000).toLocaleTimeString()"),
-    content=["String", "12:26:40 GMT+0000 (UTC)"],
-  )
+  @json.inspect(ctx.eval("new Date(1600000000000).toLocaleDateString()"), content=[
+    "String", "Sun Sep 13 2020",
+  ])
+  @json.inspect(ctx.eval("new Date(1600000000000).toLocaleTimeString()"), content=[
+    "String", "12:26:40 GMT+0000 (UTC)",
+  ])
   // valueOf
   @json.inspect(ctx.eval("new Date(1600000000000).valueOf()"), content=[
     "Number", 1600000000000,

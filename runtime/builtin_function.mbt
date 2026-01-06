@@ -18,7 +18,7 @@ pub fn init_function_prototype(func_proto_val : JSValue) -> Unit {
         }
       })
       let to_string_obj = JSFunction::new(name="toString", body=to_string_fn)
-      obj.properties.set("toString", JSValue::Function(to_string_obj))
+      obj["toString"] = JSValue::Function(to_string_obj)
 
       // call (ES3)
       let call_fn = Native(fn(ctx, this_val, args) {
@@ -43,7 +43,7 @@ pub fn init_function_prototype(func_proto_val : JSValue) -> Unit {
         }
       })
       let call_obj = JSFunction::new(name="call", body=call_fn)
-      obj.properties.set("call", JSValue::Function(call_obj))
+      obj["call"] = JSValue::Function(call_obj)
 
       // apply (ES3)
       let apply_fn = Native(fn(ctx, this_val, args) {
@@ -58,17 +58,13 @@ pub fn init_function_prototype(func_proto_val : JSValue) -> Unit {
             if args.length() > 1 {
               match args[1] {
                 Object(obj) => {
-                  let len_val = obj.properties
-                    .get("length")
-                    .unwrap_or(Number(0.0))
+                  let len_val = obj["length"]
                   let len = match len_val {
                     Number(n) => n.to_int()
                     _ => 0
                   }
                   for i = 0; i < len; i = i + 1 {
-                    call_args.push(
-                      obj.properties.get(i.to_string()).unwrap_or(Undefined),
-                    )
+                    call_args.push(obj[i.to_string()])
                   }
                 }
                 _ => ()
@@ -82,7 +78,7 @@ pub fn init_function_prototype(func_proto_val : JSValue) -> Unit {
         }
       })
       let apply_obj = JSFunction::new(name="apply", body=apply_fn)
-      obj.properties.set("apply", JSValue::Function(apply_obj))
+      obj["apply"] = JSValue::Function(apply_obj)
     }
     _ => ()
   }
@@ -143,6 +139,6 @@ pub fn create_function_constructor(proto : JSValue) -> JSValue {
     }
   })
   let ctor_obj = JSFunction::new(name="Function", body=ctor_fn, prototype=proto)
-  ctor_obj.properties.set("prototype", proto)
+  ctor_obj["prototype"] = proto
   JSValue::Function(ctor_obj)
 }

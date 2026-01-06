@@ -153,6 +153,19 @@ pub(all) struct JSObject {
 } derive(Show, Eq)
 
 ///|
+pub fn JSObject::op_set(self : JSObject, key : String, value : JSValue) -> Unit {
+  self.properties.set(key, value)
+}
+
+///|
+pub fn JSObject::op_get(self : JSObject, key : String) -> JSValue {
+  match self.properties.get(key) {
+    Some(v) => v
+    None => Undefined
+  }
+}
+
+///|
 pub impl ToJson for JSObject with to_json(_) {
   JSValue::Null.to_json()
 }
@@ -188,6 +201,23 @@ pub impl Hash for JSFunction with hash_combine(self, hasher) -> Unit {
   match self.body {
     User(_) => hasher.combine("user")
     Native(_) => hasher.combine("native")
+  }
+}
+
+///|
+pub fn JSFunction::op_set(
+  self : JSFunction,
+  key : String,
+  value : JSValue,
+) -> Unit {
+  self.properties.set(key, value)
+}
+
+///|
+pub fn JSFunction::op_get(self : JSFunction, key : String) -> JSValue {
+  match self.properties.get(key) {
+    Some(v) => v
+    None => Undefined
   }
 }
 

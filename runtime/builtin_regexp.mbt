@@ -38,9 +38,8 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
     if is_constructor_call {
       match this_val {
         Object(obj) => {
-          obj.properties.set(
-            "__internal_regexp__",
-            JSValue::Internal(JSInternal::RegExp(re, pattern_str)),
+          obj["__internal_regexp__"] = JSValue::Internal(
+            JSInternal::RegExp(re, pattern_str),
           )
           this_val
         }
@@ -88,7 +87,7 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
             "__internal_regexp__": JSValue::Internal(JSInternal::RegExp(re, _)),
             ..
           },
-          ..
+          ..,
         }
       ) => {
         // execute returns MatchResult? Checking if results is non-empty
@@ -121,7 +120,7 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
             "__internal_regexp__": JSValue::Internal(JSInternal::RegExp(re, _)),
             ..
           },
-          ..
+          ..,
         }
       ) => {
         let res = re.execute(str)
@@ -165,12 +164,10 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
       Object(
         {
           properties: {
-            "__internal_regexp__": JSValue::Internal(
-              JSInternal::RegExp(_, src),
-            ),
+            "__internal_regexp__": JSValue::Internal(JSInternal::RegExp(_, src)),
             ..
           },
-          ..
+          ..,
         }
       ) => JSValue::String("/" + src + "/")
       _ => JSValue::String("/(?:)/")

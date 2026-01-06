@@ -19,12 +19,12 @@ pub fn init_object_prototype(object_proto_val : JSValue) -> Unit {
         )
       })
       let to_string_obj = JSFunction::new(name="toString", body=to_string_fn)
-      obj.properties.set("toString", JSValue::Function(to_string_obj))
+      obj["toString"] = JSValue::Function(to_string_obj)
 
       // valueOf
       let value_of_fn = Native(fn(_ctx, this_val, _args) { this_val })
       let value_of_obj = JSFunction::new(name="valueOf", body=value_of_fn)
-      obj.properties.set("valueOf", JSValue::Function(value_of_obj))
+      obj["valueOf"] = JSValue::Function(value_of_obj)
 
       // hasOwnProperty
       let has_own_property_fn = Native(fn(_ctx, this_val, args) {
@@ -44,10 +44,7 @@ pub fn init_object_prototype(object_proto_val : JSValue) -> Unit {
         params=["prop"],
         body=has_own_property_fn,
       )
-      obj.properties.set(
-        "hasOwnProperty",
-        JSValue::Function(has_own_property_obj),
-      )
+      obj["hasOwnProperty"] = JSValue::Function(has_own_property_obj)
     }
     _ => ()
   }

@@ -12,7 +12,7 @@ pub fn init_number_prototype(number_proto_val : JSValue) -> Unit {
         }
       })
       let value_of_obj = JSFunction::new(name="valueOf", body=value_of_fn)
-      obj.properties.set("valueOf", JSValue::Function(value_of_obj))
+      obj["valueOf"] = JSValue::Function(value_of_obj)
 
       // toString
       let to_string_fn = Native(fn(_ctx, this_val, _args) {
@@ -27,7 +27,7 @@ pub fn init_number_prototype(number_proto_val : JSValue) -> Unit {
         JSValue::String(val.to_string())
       })
       let to_string_obj = JSFunction::new(name="toString", body=to_string_fn)
-      obj.properties.set("toString", JSValue::Function(to_string_obj))
+      obj["toString"] = JSValue::Function(to_string_obj)
 
       // toFixed
       let to_fixed_fn = Native(fn(_ctx, this_val, args) {
@@ -115,7 +115,7 @@ pub fn init_number_prototype(number_proto_val : JSValue) -> Unit {
         }
       })
       let to_fixed_obj = JSFunction::new(name="toFixed", body=to_fixed_fn)
-      obj.properties.set("toFixed", JSValue::Function(to_fixed_obj))
+      obj["toFixed"] = JSValue::Function(to_fixed_obj)
     }
     _ => ()
   }
@@ -154,7 +154,7 @@ pub fn create_number_constructor(proto : JSValue) -> JSValue {
     }
     if is_constructor {
       match this_val {
-        Object(o) => o.properties.set("PrimitiveValue", JSValue::Number(val))
+        Object(o) => o["PrimitiveValue"] = JSValue::Number(val)
         _ => ()
       }
       JSValue::Number(val)
@@ -163,17 +163,11 @@ pub fn create_number_constructor(proto : JSValue) -> JSValue {
     }
   })
   let ctor_obj = JSFunction::new(name="Number", body=ctor_fn)
-  ctor_obj.properties.set("prototype", proto)
-  ctor_obj.properties.set("MAX_VALUE", JSValue::Number(1.7976931348623157e308))
-  ctor_obj.properties.set("MIN_VALUE", JSValue::Number(5.0e-324))
-  ctor_obj.properties.set("NaN", JSValue::Number(@double.not_a_number))
-  ctor_obj.properties.set(
-    "NEGATIVE_INFINITY",
-    JSValue::Number(-@double.infinity),
-  )
-  ctor_obj.properties.set(
-    "POSITIVE_INFINITY",
-    JSValue::Number(@double.infinity),
-  )
+  ctor_obj["prototype"] = proto
+  ctor_obj["MAX_VALUE"] = JSValue::Number(1.7976931348623157e308)
+  ctor_obj["MIN_VALUE"] = JSValue::Number(5.0e-324)
+  ctor_obj["NaN"] = JSValue::Number(@double.not_a_number)
+  ctor_obj["NEGATIVE_INFINITY"] = JSValue::Number(-@double.infinity)
+  ctor_obj["POSITIVE_INFINITY"] = JSValue::Number(@double.infinity)
   JSValue::Function(ctor_obj)
 }

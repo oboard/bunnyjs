@@ -12,7 +12,7 @@ pub fn init_string_prototype(string_proto_val : JSValue) -> Unit {
         }
       })
       let to_string_obj = JSFunction::new(name="toString", body=to_string_fn)
-      obj.properties.set("toString", JSValue::Function(to_string_obj))
+      obj["toString"] = JSValue::Function(to_string_obj)
 
       // valueOf
       let value_of_fn = Native(fn(_ctx, this_val, _args) {
@@ -24,7 +24,7 @@ pub fn init_string_prototype(string_proto_val : JSValue) -> Unit {
         }
       })
       let value_of_obj = JSFunction::new(name="valueOf", body=value_of_fn)
-      obj.properties.set("valueOf", JSValue::Function(value_of_obj))
+      obj["valueOf"] = JSValue::Function(value_of_obj)
 
       // charAt
       let char_at_fn = Native(fn(_ctx, this_val, args) {
@@ -54,7 +54,7 @@ pub fn init_string_prototype(string_proto_val : JSValue) -> Unit {
         }
       })
       let char_at_obj = JSFunction::new(name="charAt", body=char_at_fn)
-      obj.properties.set("charAt", JSValue::Function(char_at_obj))
+      obj["charAt"] = JSValue::Function(char_at_obj)
     }
     _ => ()
   }
@@ -80,8 +80,8 @@ pub fn create_string_constructor(proto : JSValue) -> JSValue {
     if is_constructor {
       match this_val {
         Object(o) => {
-          o.properties.set("PrimitiveValue", JSValue::String(val))
-          o.properties.set("length", JSValue::Number(val.length().to_double()))
+          o["PrimitiveValue"] = JSValue::String(val)
+          o["length"] = JSValue::Number(val.length().to_double())
         }
         _ => ()
       }
@@ -91,6 +91,6 @@ pub fn create_string_constructor(proto : JSValue) -> JSValue {
     }
   })
   let ctor_obj = JSFunction::new(name="String", body=ctor_fn)
-  ctor_obj.properties.set("prototype", proto)
+  ctor_obj["prototype"] = proto
   JSValue::Function(ctor_obj)
 }

@@ -80,9 +80,8 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
         Object(obj) => {
           match zdt_opt {
             Some(zdt) =>
-              obj.properties.set(
-                "__internal_date__",
-                JSValue::Internal(JSInternal::Date(zdt)),
+              obj["__internal_date__"] = JSValue::Internal(
+                JSInternal::Date(zdt),
               )
             None => ()
           }
@@ -108,7 +107,6 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
     "now",
     JSValue::Function(JSFunction::new(name="now", body=now_fn)),
   )
-
   let date_ctor = JSFunction::new(
     name="Date",
     body=date_ctor_fn,
@@ -207,10 +205,7 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
         }
         match zdt_opt {
           Some(zdt) => {
-            obj.properties.set(
-              "__internal_date__",
-              JSValue::Internal(JSInternal::Date(zdt)),
-            )
+            obj["__internal_date__"] = JSValue::Internal(JSInternal::Date(zdt))
             JSValue::Number(time)
           }
           None => JSValue::Number(@double.not_a_number)
@@ -293,18 +288,14 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
     }
     JSValue::Number(zdt.to_unix_second().to_double() * 1000.0)
   })
-  date_ctor.properties.set(
-    "UTC",
-    JSValue::Function(JSFunction::new(name="UTC", body=utc_fn)),
-  )
+  date_ctor["UTC"] = JSValue::Function(JSFunction::new(name="UTC", body=utc_fn))
 
   // Date.parse (minimal implementation)
   let parse_fn = Native(fn(_ctx, _this, _args) {
     JSValue::Number(@double.not_a_number) // Not implemented yet, returns NaN
   })
-  date_ctor.properties.set(
-    "parse",
-    JSValue::Function(JSFunction::new(name="parse", body=parse_fn)),
+  date_ctor["parse"] = JSValue::Function(
+    JSFunction::new(name="parse", body=parse_fn),
   )
 
   // Getters
@@ -532,14 +523,13 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
   ) -> JSValue {
     match this_val {
       Object(obj) =>
-        match obj.properties.get("__internal_date__") {
-          Some(JSValue::Internal(JSInternal::Date(zdt))) => {
+        match obj["__internal_date__"] {
+          JSValue::Internal(JSInternal::Date(zdt)) => {
             let new_zdt = update_fn(zdt) catch { _ => None }
             match new_zdt {
               Some(nz) => {
-                obj.properties.set(
-                  "__internal_date__",
-                  JSValue::Internal(JSInternal::Date(nz)),
+                obj["__internal_date__"] = JSValue::Internal(
+                  JSInternal::Date(nz),
                 )
                 JSValue::Number(nz.to_unix_second().to_double() * 1000.0)
               }

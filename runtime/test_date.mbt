@@ -54,11 +54,9 @@ test "Date Constructor and Methods" {
     prototype: Some(date_ctor.prototype.unwrap()),
   })
   let _ = match date_ctor.body {
-    Native(n) =>
-      n(ctx, iso_date_obj, [JSValue::String("2000-01-01T00:00:00")])
+    Native(n) => n(ctx, iso_date_obj, [JSValue::String("2000-01-01T00:00:00")])
     _ => abort("Date body is not native")
   }
-
   match iso_date_obj {
     Object(obj) =>
       match obj.properties.get("__internal_date__") {

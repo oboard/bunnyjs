@@ -42,6 +42,7 @@ pub suberror EvalError {
   Return(JSValue)
   Break(String?)
   Continue(String?)
+  Throw(JSValue)
 }
 pub impl Show for EvalError
 
@@ -49,6 +50,7 @@ pub impl Show for EvalError
 pub(all) struct Context {
   scope : @hashmap.HashMap[String, JSValue]
   parent : Context?
+  mut pending_labels : Array[String]
 }
 #as_free_fn(create_global)
 pub fn Context::create_global() -> Self
@@ -83,6 +85,8 @@ pub(all) struct JSFunction {
   prototype : JSValue?
 }
 pub fn JSFunction::new(name? : String, params? : Array[String], body~ : FunctionBody, context? : Context, properties? : @hashmap.HashMap[String, JSValue], prototype? : JSValue) -> Self
+pub fn JSFunction::op_get(Self, String) -> JSValue
+pub fn JSFunction::op_set(Self, String, JSValue) -> Unit
 pub impl Compare for JSFunction
 pub impl Eq for JSFunction
 pub impl Hash for JSFunction
@@ -105,6 +109,8 @@ pub(all) struct JSObject {
   properties : @hashmap.HashMap[String, JSValue]
   prototype : JSValue?
 }
+pub fn JSObject::op_get(Self, String) -> JSValue
+pub fn JSObject::op_set(Self, String, JSValue) -> Unit
 pub impl Compare for JSObject
 pub impl Eq for JSObject
 pub impl Hash for JSObject

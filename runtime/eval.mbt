@@ -180,7 +180,7 @@ fn Context::evaluate(
           try {
             res = self.evaluate(Statement(BlockStatement(block)))
           } catch {
-            EvalError::Throw(v) => {
+            EvalError::Throw(v) =>
               match handler {
                 Some(h) => {
                   let catch_ctx = new(parent=self)
@@ -196,17 +196,13 @@ fn Context::evaluate(
                 }
                 None => flow_interrupt = Some(EvalError::Throw(v))
               }
-            }
             e => flow_interrupt = Some(e)
           }
           match finalizer {
-            Some(f) => {
-              try {
-                self.evaluate(Statement(BlockStatement(f))) |> ignore
-              } catch {
+            Some(f) =>
+              try self.evaluate(Statement(BlockStatement(f))) |> ignore catch {
                 e => flow_interrupt = Some(e)
               }
-            }
             None => ()
           }
           match flow_interrupt {
@@ -218,17 +214,16 @@ fn Context::evaluate(
           self.pending_labels = current_labels
           self.pending_labels.push(label.name)
           try {
-             let res = self.evaluate(Statement(body))
-             res
+            let res = self.evaluate(Statement(body))
+            res
           } catch {
-             EvalError::Break(l) => {
-                if l == Some(label.name) {
-                   Undefined
-                } else {
-                   raise EvalError::Break(l)
-                }
-             }
-             e => raise e
+            EvalError::Break(l) =>
+              if l == Some(label.name) {
+                Undefined
+              } else {
+                raise EvalError::Break(l)
+              }
+            e => raise e
           }
         }
         BlockStatement({ body, .. }) => {
@@ -251,9 +246,16 @@ fn Context::evaluate(
                   Some(l) => {
                     let mut found = false
                     for cl in current_labels {
-                      if cl == l { found = true; break }
+                      if cl == l {
+                        found = true
+                        break
+                      }
                     }
-                    if found { continue } else { raise EvalError::Continue(label) }
+                    if found {
+                      continue
+                    } else {
+                      raise EvalError::Continue(label)
+                    }
                   }
                   None => continue
                 }
@@ -273,12 +275,19 @@ fn Context::evaluate(
                 }
               EvalError::Continue(label) =>
                 match label {
-                   Some(l) => {
+                  Some(l) => {
                     let mut found = false
                     for cl in current_labels {
-                      if cl == l { found = true; break }
+                      if cl == l {
+                        found = true
+                        break
+                      }
                     }
-                    if found { continue } else { raise EvalError::Continue(label) }
+                    if found {
+                      continue
+                    } else {
+                      raise EvalError::Continue(label)
+                    }
                   }
                   None => continue
                 }
@@ -327,9 +336,16 @@ fn Context::evaluate(
                   Some(l) => {
                     let mut found = false
                     for cl in current_labels {
-                      if cl == l { found = true; break }
+                      if cl == l {
+                        found = true
+                        break
+                      }
                     }
-                    if found { () } else { raise EvalError::Continue(label) }
+                    if found {
+                      ()
+                    } else {
+                      raise EvalError::Continue(label)
+                    }
                   }
                   None => ()
                 }
