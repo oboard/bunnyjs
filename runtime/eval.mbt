@@ -559,6 +559,41 @@ fn Context::evaluate(
         StringLiteral({ value }) => String(value)
         BooleanLiteral({ value }) => Boolean(value)
         NullLiteral => Null
+        RegExpLiteral({ pattern, flags }) => {
+          let pattern_val = JSValue::String(pattern[:])
+          let mut flags_str = ""
+          for f in flags {
+            match f {
+              @parser.RegExpFlag::G => flags_str = flags_str + "g"
+              @parser.RegExpFlag::I => flags_str = flags_str + "i"
+              @parser.RegExpFlag::M => flags_str = flags_str + "m"
+              @parser.RegExpFlag::S => flags_str = flags_str + "s"
+              @parser.RegExpFlag::U => flags_str = flags_str + "u"
+              @parser.RegExpFlag::Y => flags_str = flags_str + "y"
+              @parser.RegExpFlag::V => flags_str = flags_str + "v"
+            }
+          }
+          let flags_val = JSValue::String(flags_str[:])
+          match self.resolve("RegExp") {
+            Function(f) => {
+              let proto = match f.properties.get("prototype") {
+                Some(p) => Some(p)
+                None => Some(Null)
+              }
+              let new_obj = JSValue::Object(JSObject::{
+                properties: @hashmap.new(),
+                prototype: proto,
+              })
+              let args = [pattern_val, flags_val]
+              let res = self.invoke(f, new_obj, args)
+              match res {
+                Object(_) | Function(_) => res
+                _ => new_obj
+              }
+            }
+            _ => abort("RegExp constructor not found")
+          }
+        }
         PrefixUnaryExpression({ operator, argument, .. }) =>
           match operator {
             Delete =>

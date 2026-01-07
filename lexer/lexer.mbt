@@ -383,10 +383,24 @@ fn lex_tokens(input : StringView, lexer : Lexer) -> Unit {
       lexer.add_token(@tokens.TokenKind::Star, "*")
       lex_tokens(rest, lexer)
     }
-    ("/", rest) => {
-      lexer.add_token(@tokens.TokenKind::Slash, "/")
-      lex_tokens(rest, lexer)
-    }
+    ("/", rest) =>
+      if is_regex_start(lexer) {
+        lexmatch rest {
+          (("([^/\\\\\n\r]|\\\\.)*" as body) "/" ("[a-zA-Z]*" as flags), rest2) => {
+            let full = "/" + body.to_string() + "/" + flags.to_string()
+            println("Lexed regex: " + full)
+            lexer.add_token(@tokens.TokenKind::RegularExpressionLiteral, full)
+            lex_tokens(rest2, lexer)
+          }
+          _ => {
+            lexer.add_token(@tokens.TokenKind::Slash, "/")
+            lex_tokens(rest, lexer)
+          }
+        }
+      } else {
+        lexer.add_token(@tokens.TokenKind::Slash, "/")
+        lex_tokens(rest, lexer)
+      }
     ("%", rest) => {
       lexer.add_token(@tokens.TokenKind::Percent, "%")
       lex_tokens(rest, lexer)

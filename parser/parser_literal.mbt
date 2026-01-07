@@ -17,6 +17,11 @@ fn Parser::parse_primary(self : Parser) -> Expression {
       self.advance()
       Expression::StringLiteral({ value: token.value })
     }
+    TokenKind::RegularExpressionLiteral => {
+      self.advance()
+      let (pattern, flags) = parse_regex_token(token.value)
+      Expression::RegExpLiteral({ pattern, flags })
+    }
     TokenKind::NullLiteral => {
       self.advance()
       Expression::NullLiteral
