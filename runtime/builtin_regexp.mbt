@@ -36,7 +36,6 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
     // Handle ignore case by prepending (?i) if supported or we rely on the engine
     // MoonBit's regexp currently doesn't support inline flags like (?i) or we don't have access to compile options.
     // So we just pass the pattern as is. Flags are stored in properties but not used for matching yet.
-    println("RegExp compiling: " + pattern_str)
     let effective_pattern = pattern_str
     let (re, valid) = (@regexp.compile(effective_pattern[:]), true) catch {
       _ => (@regexp.compile(""[:]) catch { _ => panic() }, false)

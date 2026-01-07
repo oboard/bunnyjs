@@ -388,7 +388,6 @@ fn lex_tokens(input : StringView, lexer : Lexer) -> Unit {
         lexmatch rest {
           (("([^/\\\\\n\r]|\\\\.)*" as body) "/" ("[a-zA-Z]*" as flags), rest2) => {
             let full = "/" + body.to_string() + "/" + flags.to_string()
-            println("Lexed regex: " + full)
             lexer.add_token(@tokens.TokenKind::RegularExpressionLiteral, full)
             lex_tokens(rest2, lexer)
           }
