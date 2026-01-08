@@ -3,7 +3,6 @@ package "oboard/tutujs/runtime"
 
 import(
   "moonbitlang/core/bigint"
-  "moonbitlang/core/hashmap"
   "moonbitlang/core/json"
   "moonbitlang/regexp"
   "oboard/tutujs/parser"
@@ -17,9 +16,13 @@ pub fn create_date_object(JSValue) -> JSValue
 
 pub fn create_function_constructor(JSValue) -> JSValue
 
+pub fn create_json_object(JSValue) -> JSValue
+
 pub fn create_math_object(JSValue) -> JSValue
 
 pub fn create_number_constructor(JSValue) -> JSValue
+
+pub fn create_object_constructor(JSValue, JSValue) -> JSValue
 
 pub fn create_regexp_object(JSValue) -> JSValue
 
@@ -48,9 +51,10 @@ pub impl Show for EvalError
 
 // Types and methods
 pub(all) struct Context {
-  scope : @hashmap.HashMap[String, JSValue]
+  scope : Map[String, JSValue]
   parent : Context?
   mut pending_labels : Array[String]
+  mut strict : Bool
 }
 #as_free_fn(create_global)
 pub fn Context::create_global() -> Self
@@ -58,7 +62,7 @@ pub fn Context::eval(Self, &Show) -> JSValue
 pub fn Context::get_property(Self, JSValue, String) -> JSValue
 pub fn Context::invoke(Self, JSFunction, JSValue, Array[JSValue]) -> JSValue raise EvalError
 #as_free_fn(new)
-pub fn Context::new(parent? : Self) -> Self
+pub fn Context::new(parent? : Self, strict? : Bool) -> Self
 pub fn Context::resolve(Self, String) -> JSValue
 pub impl Compare for Context
 pub impl Eq for Context
@@ -69,7 +73,7 @@ pub impl @json.FromJson for Context
 
 pub(all) enum FunctionBody {
   User(@parser.BlockStatement)
-  Native((Context, JSValue, Array[JSValue]) -> JSValue)
+  Native((Context, JSValue, Array[JSValue]) -> JSValue raise EvalError)
 }
 pub impl Eq for FunctionBody
 pub impl Show for FunctionBody
@@ -81,12 +85,15 @@ pub(all) struct JSFunction {
   params : Array[String]
   body : FunctionBody
   context : Context
-  properties : @hashmap.HashMap[String, JSValue]
+  properties : Map[String, JSValue]
   prototype : JSValue?
+  strict : Bool
 }
-pub fn JSFunction::new(name? : String, params? : Array[String], body~ : FunctionBody, context? : Context, properties? : @hashmap.HashMap[String, JSValue], prototype? : JSValue) -> Self
-pub fn JSFunction::op_get(Self, String) -> JSValue
-pub fn JSFunction::op_set(Self, String, JSValue) -> Unit
+#alias("_[_]")
+pub fn JSFunction::get(Self, String) -> JSValue
+pub fn JSFunction::new(name? : String, params? : Array[String], body~ : FunctionBody, context? : Context, properties? : Map[String, JSValue], prototype? : JSValue, strict? : Bool) -> Self
+#alias("_[_]=_")
+pub fn JSFunction::set(Self, String, JSValue) -> Unit
 pub impl Compare for JSFunction
 pub impl Eq for JSFunction
 pub impl Hash for JSFunction
@@ -97,6 +104,7 @@ pub impl @json.FromJson for JSFunction
 pub(all) enum JSInternal {
   Date(@time.ZonedDateTime)
   RegExp(@regexp.Regexp, String)
+  Accessor(JSFunction?, JSFunction?)
 }
 pub impl Compare for JSInternal
 pub impl Eq for JSInternal
@@ -106,7 +114,7 @@ pub impl ToJson for JSInternal
 pub impl @json.FromJson for JSInternal
 
 pub(all) struct JSObject {
-  properties : @hashmap.HashMap[String, JSValue]
+  properties : Map[String, JSValue]
   prototype : JSValue?
 }
 pub fn JSObject::op_get(Self, String) -> JSValue
@@ -134,13 +142,14 @@ pub fn JSValue::bitwise_and(Self, Self) -> Self
 pub fn JSValue::bitwise_not(Self) -> Self
 pub fn JSValue::bitwise_or(Self, Self) -> Self
 pub fn JSValue::bitwise_xor(Self, Self) -> Self
+#alias("_[_]")
 pub fn JSValue::get_property(Self, String) -> Self
 pub fn JSValue::instanceof(Self, Self) -> Bool
 pub fn JSValue::is_truthy(Self) -> Bool
 pub fn JSValue::left_shift(Self, Self) -> Self
 pub fn JSValue::op_in(Self, Self) -> Bool
 pub fn JSValue::right_shift(Self, Self) -> Self
-pub fn JSValue::set_property(Self, String, Self) -> Unit
+pub fn JSValue::set_property(Self, String, Self, strict? : Bool) -> Unit raise EvalError
 pub fn JSValue::strict_equal(Self, Self) -> Bool
 pub fn JSValue::to_int32(Self) -> Int
 pub fn JSValue::to_number(Self) -> Double
@@ -158,8 +167,12 @@ pub impl Show for JSValue
 pub impl Sub for JSValue
 pub impl ToJson for JSValue
 pub impl @json.FromJson for JSValue
+pub impl ToJSValue for JSValue
 
 // Type aliases
 
 // Traits
+pub(open) trait ToJSValue {
+  to_js_value(Self) -> JSValue
+}
 

@@ -29,12 +29,11 @@ pub fn Parser::parse_program(self : Parser) -> Program {
     let stmt = self.parse_statement()
     body.push(stmt)
     match stmt {
-      Statement::ExpressionStatement(expr_stmt) => {
+      Statement::ExpressionStatement(expr_stmt) =>
         match expr_stmt.directive {
           Some(d) => directives.push(d)
           None => ()
         }
-      }
       _ => ()
     }
   }

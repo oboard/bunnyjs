@@ -1,6 +1,6 @@
 ///|
 pub(all) struct Context {
-  scope : @hashmap.HashMap[String, JSValue]
+  scope : Map[String, JSValue]
   parent : Context?
   mut pending_labels : Array[String]
   mut strict : Bool
@@ -25,7 +25,7 @@ pub impl FromJson for Context with from_json(_, _) {
 ///|
 #as_free_fn(new)
 pub fn Context::new(parent? : Context, strict? : Bool) -> Context {
-  let scope = @hashmap.new()
+  let scope = {}
   match parent {
     None => {
       scope.set("NaN", Number(@double.not_a_number))
@@ -63,7 +63,7 @@ pub fn Context::create_global() -> Context {
   let ctx = Context::new()
 
   // Object.prototype
-  let object_proto_props = @hashmap.new()
+  let object_proto_props = {}
   let object_proto = JSObject::{
     properties: object_proto_props,
     prototype: None,
@@ -72,7 +72,7 @@ pub fn Context::create_global() -> Context {
   init_object_prototype(object_proto_val)
 
   // Function.prototype
-  let func_proto_props = @hashmap.new()
+  let func_proto_props = {}
   let func_proto = JSObject::{
     properties: func_proto_props,
     prototype: Some(object_proto_val),
@@ -81,7 +81,9 @@ pub fn Context::create_global() -> Context {
   init_function_prototype(func_proto_val)
 
   // Object Constructor
-  let object_fn_val = create_object_constructor(object_proto_val, func_proto_val)
+  let object_fn_val = create_object_constructor(
+    object_proto_val, func_proto_val,
+  )
 
   // Object.prototype.constructor = Object
   object_proto_props.set("constructor", object_fn_val)
@@ -93,7 +95,7 @@ pub fn Context::create_global() -> Context {
   ctx.scope.set("Function", func_ctor_val)
 
   // Array.prototype
-  let array_proto_props = @hashmap.new()
+  let array_proto_props = {}
   let array_proto = JSObject::{
     properties: array_proto_props,
     prototype: Some(object_proto_val),
@@ -103,7 +105,7 @@ pub fn Context::create_global() -> Context {
 
   // Array Constructor
   let array_fn_body = Native(fn(_ctx, _this_val, args) {
-    let arr_props = @hashmap.new()
+    let arr_props = {}
     let mut len = 0.0
     if args.length() == 1 {
       match args[0] {
@@ -122,7 +124,7 @@ pub fn Context::create_global() -> Context {
     arr_props.set("length", Number(len))
     Object({ properties: arr_props, prototype: Some(array_proto_val) })
   })
-  let array_fn_props = @hashmap.new()
+  let array_fn_props = {}
   array_fn_props.set("prototype", array_proto_val)
   let array_fn = JSFunction::new(
     name="Array",
@@ -138,7 +140,7 @@ pub fn Context::create_global() -> Context {
   ctx.scope.set("Array", array_fn_val)
 
   // String.prototype
-  let string_proto_props = @hashmap.new()
+  let string_proto_props = {}
   let string_proto = JSObject::{
     properties: string_proto_props,
     prototype: Some(object_proto_val),
@@ -152,7 +154,7 @@ pub fn Context::create_global() -> Context {
   ctx.scope.set("String", string_ctor_val)
 
   // Number.prototype
-  let number_proto_props = @hashmap.new()
+  let number_proto_props = {}
   let number_proto = JSObject::{
     properties: number_proto_props,
     prototype: Some(object_proto_val),
@@ -166,7 +168,7 @@ pub fn Context::create_global() -> Context {
   ctx.scope.set("Number", number_ctor_val)
 
   // Boolean.prototype
-  let boolean_proto_props = @hashmap.new()
+  let boolean_proto_props = {}
   let boolean_proto = JSObject::{
     properties: boolean_proto_props,
     prototype: Some(object_proto_val),

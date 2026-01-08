@@ -23,7 +23,6 @@ pub fn Context::eval(self : Context, code : &Show) -> JSValue {
   if strict {
     self.strict = true
   }
-
   let mut res = JSValue::Undefined
   for node in ast.body {
     try {
@@ -56,7 +55,7 @@ pub fn Context::invoke(
         }
       }
       let strict = func.strict || strict_directive
-      let new_ctx = new(parent=func.context, strict=strict)
+      let new_ctx = new(parent=func.context, strict~)
       new_ctx.scope.set("this", this_val)
       for i, val in args {
         if i < func.params.length() {
@@ -102,7 +101,7 @@ fn Context::evaluate(
             Function(f) => f.properties.get("prototype")
             _ => None
           }
-          let func_props = @hashmap.new()
+          let func_props = {}
           let func = match func_proto {
             Some(proto) =>
               JSFunction::new(
@@ -131,7 +130,7 @@ fn Context::evaluate(
             Function(f) => f.properties.get("prototype")
             _ => None
           }
-          let proto_props = @hashmap.new()
+          let proto_props = {}
           let proto_obj = JSObject::{
             properties: proto_props,
             prototype: obj_proto,
@@ -449,10 +448,7 @@ fn Context::evaluate(
                 Some(p) => Some(p)
                 None => Some(Null)
               }
-              let new_obj = JSValue::Object({
-                properties: @hashmap.new(),
-                prototype: proto,
-              })
+              let new_obj = JSValue::Object({ properties: {}, prototype: proto })
               let res = match func.body {
                 User(block) => {
                   let new_ctx = new(parent=func.context, strict=func.strict)
@@ -604,7 +600,7 @@ fn Context::evaluate(
                 None => Some(Null)
               }
               let new_obj = JSValue::Object(JSObject::{
-                properties: @hashmap.new(),
+                properties: {},
                 prototype: proto,
               })
               let args = [pattern_val, flags_val]
@@ -679,7 +675,7 @@ fn Context::evaluate(
             }
           }
         ObjectExpression({ properties }) => {
-          let obj_props = @hashmap.new()
+          let obj_props = {}
           for prop in properties {
             match prop {
               ObjectProperty({ key, value, computed, .. }) => {
@@ -758,8 +754,7 @@ fn Context::evaluate(
                         )
                     }
                   }
-                  Method =>
-                    obj_props.set(key_str, JSValue::Function(func_val))
+                  Method => obj_props.set(key_str, JSValue::Function(func_val))
                   _ => ()
                 }
               }
@@ -769,7 +764,7 @@ fn Context::evaluate(
           Object({ properties: obj_props, prototype: Some(Null) })
         }
         ArrayLiteralExpression({ elements }) => {
-          let arr_props = @hashmap.new()
+          let arr_props = {}
           let mut len = 0
           for element in elements {
             match element {
@@ -808,7 +803,7 @@ fn Context::evaluate(
             Function(f) => f.properties.get("prototype")
             _ => None
           }
-          let func_props = @hashmap.new()
+          let func_props = {}
           let func = JSFunction::new(
             name?,
             params=param_names,
@@ -823,7 +818,7 @@ fn Context::evaluate(
             Function(f) => f.properties.get("prototype")
             _ => None
           }
-          let proto_props = @hashmap.new()
+          let proto_props = {}
           let proto_obj = JSObject::{
             properties: proto_props,
             prototype: obj_proto,

@@ -2,7 +2,7 @@
 
 ///|
 pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
-  let regexp_proto_props = @hashmap.new()
+  let regexp_proto_props = {}
   let regexp_proto = JSValue::Object(JSObject::{
     properties: regexp_proto_props,
     prototype: Some(object_proto),
@@ -10,25 +10,16 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
 
   // RegExp Constructor
   let regexp_ctor_fn = Native(fn(_ctx, this_val, args) {
-    let (pattern_view, pattern_str) = if args.length() > 0 {
-      match args[0] {
-        JSValue::String(s) => (s, s.to_string())
-        _ => {
-          let s = ""
-          (s[:], s)
-        }
-      }
+    let (pattern_view, pattern_str) = if args is [JSValue::String(s), ..] {
+      (s, s.to_string())
     } else {
       let s = ""
       (s[:], s)
     }
 
     // Parse flags
-    let flags_str = if args.length() > 1 {
-      match args[1] {
-        JSValue::String(s) => s.to_string()
-        _ => ""
-      }
+    let flags_str = if args is [_, JSValue::String(s), ..] {
+      s.to_string()
     } else {
       ""
     }
@@ -58,7 +49,7 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
       )
     }
     let is_constructor_call = match this_val {
-      Object(_obj) => true
+      Object(_) => true
       _ => false
     }
     if is_constructor_call {
@@ -71,7 +62,7 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
       }
     } else {
       // Function call - create new object
-      let new_obj_props = @hashmap.new()
+      let new_obj_props = {}
       let new_obj = JSValue::Object(JSObject::{
         properties: new_obj_props,
         prototype: Some(regexp_proto),
@@ -84,7 +75,7 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
       new_obj
     }
   })
-  let regexp_ctor_props = @hashmap.new()
+  let regexp_ctor_props = {}
   regexp_ctor_props.set("prototype", regexp_proto)
   let regexp_ctor = JSFunction::new(
     name="RegExp",
@@ -97,11 +88,8 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
 
   // RegExp.prototype.test(string)
   let test_fn = Native(fn(_ctx, this_val, args) {
-    let str = if args.length() > 0 {
-      match args[0] {
-        JSValue::String(s) => s.to_string()
-        _ => "undefined"
-      }
+    let str = if args is [JSValue::String(s), ..] {
+      s.to_string()
     } else {
       "undefined"
     }
@@ -130,11 +118,8 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
 
   // RegExp.prototype.exec(string)
   let exec_fn = Native(fn(_ctx, this_val, args) {
-    let str = if args.length() > 0 {
-      match args[0] {
-        JSValue::String(s) => s.to_string()
-        _ => "undefined"
-      }
+    let str = if args is [JSValue::String(s), ..] {
+      s.to_string()
     } else {
       "undefined"
     }
@@ -159,7 +144,7 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
           }
           // Calculate index using length of text before match
           let match_index = res.before().length()
-          let result_array_props = @hashmap.new()
+          let result_array_props = {}
           result_array_props.set("0", JSValue::String(match_str))
           result_array_props.set(
             "index",

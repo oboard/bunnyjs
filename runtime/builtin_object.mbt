@@ -28,11 +28,11 @@ pub fn init_object_prototype(object_proto_val : JSValue) -> Unit {
 
       // hasOwnProperty
       let has_own_property_fn = Native(fn(_ctx, this_val, args) {
-        if args.length() > 0 {
-          let key = args[0].to_string()
+        if args is [prop, ..] {
+          let key = prop.to_string()
           match this_val {
-            Object(o) => Boolean(o.properties.contains(key))
-            Function(f) => Boolean(f.properties.contains(key))
+            Object({ properties, .. }) => Boolean(properties.contains(key))
+            Function({ properties, .. }) => Boolean(properties.contains(key))
             _ => Boolean(false)
           }
         } else {
@@ -50,24 +50,22 @@ pub fn init_object_prototype(object_proto_val : JSValue) -> Unit {
   }
 }
 
-pub fn create_object_constructor(proto : JSValue, func_proto : JSValue) -> JSValue {
+///|
+pub fn create_object_constructor(
+  proto : JSValue,
+  func_proto : JSValue,
+) -> JSValue {
   let object_fn_body = Native(fn(_ctx, _this_val, args) {
-    if args.length() > 0 {
-      let val = args[0]
+    if args is [val, ..] {
       match val {
         Object(_) => val
-        Null | Undefined =>
-          Object({
-            properties: @hashmap.new(),
-            prototype: Some(proto),
-          })
+        Null | Undefined => Object({ properties: {}, prototype: Some(proto) })
         _ => val // TODO: Box primitive
       }
     } else {
-      Object({ properties: @hashmap.new(), prototype: Some(proto) })
+      Object({ properties: {}, prototype: Some(proto) })
     }
   })
-  
   let object_fn = JSFunction::new(
     name="Object",
     body=object_fn_body,
@@ -77,23 +75,15 @@ pub fn create_object_constructor(proto : JSValue, func_proto : JSValue) -> JSVal
 
   // Object.keys
   let keys_fn = Native(fn(_ctx, _this_val, args) {
-    if args.length() > 0 {
-      match args[0] {
-        Object(o) => {
-          let keys_array = JSObject::{
-            properties: @hashmap.new(),
-            prototype: Some(proto), // Should be Array.prototype ideally
-          }
-          let mut i = 0.0
-          for k, _ in o.properties {
-            keys_array[i.to_string()] = JSValue::String(k)
-            i = i + 1.0
-          }
-          keys_array["length"] = JSValue::Number(i)
-          JSValue::Object(keys_array)
-        }
-        _ => JSValue::Undefined // TypeError in ES5+
+    if args is [Object({ properties, .. }), ..] {
+      let keys_array = JSObject::{ properties: {}, prototype: Some(proto) } // Should be Array.prototype ideally
+      let mut i = 0.0
+      for k, _ in properties {
+        keys_array[i.to_string()] = JSValue::String(k)
+        i = i + 1.0
       }
+      keys_array["length"] = JSValue::Number(i)
+      JSValue::Object(keys_array)
     } else {
       JSValue::Undefined // TypeError
     }
@@ -103,14 +93,10 @@ pub fn create_object_constructor(proto : JSValue, func_proto : JSValue) -> JSVal
 
   // Object.create
   let create_fn = Native(fn(_ctx, _this_val, args) {
-    if args.length() > 0 {
-      let proto_arg = args[0]
+    if args is [proto_arg, ..] {
       match proto_arg {
         Object(_) | Null =>
-          JSValue::Object({
-            properties: @hashmap.new(),
-            prototype: Some(proto_arg),
-          })
+          JSValue::Object({ properties: {}, prototype: Some(proto_arg) })
         _ => JSValue::Undefined // TypeError
       }
     } else {
@@ -122,52 +108,51 @@ pub fn create_object_constructor(proto : JSValue, func_proto : JSValue) -> JSVal
 
   // Object.defineProperty (Simplified but handles accessors)
   let define_property_fn = Native(fn(_ctx, _this_val, args) {
-    if args.length() >= 3 {
-      let obj = args[0]
-      let prop = args[1].to_string()
-      let descriptor = args[2]
-      match (obj, descriptor) {
-        (Object(o), Object(desc)) => {
-          if desc.properties.contains("get") || desc.properties.contains("set") {
-             let getter = match desc["get"] {
-               Function(f) => Some(f)
-               _ => None
-             }
-             let setter = match desc["set"] {
-               Function(f) => Some(f)
-               _ => None
-             }
-             o[prop] = Internal(Accessor(getter, setter))
-          } else if desc.properties.contains("value") {
-            o[prop] = desc["value"]
-          } else {
-            // Default to undefined value if nothing specified
-             if not(o.properties.contains(prop)) {
-                o[prop] = Undefined
-             }
-          }
-          // Ignore other descriptor properties like writable, enumerable, configurable for now
-          obj
+    if args
+      is [
+        Object({ properties, .. } as o),
+        prop_arg,
+        Object({ properties: desc_props, .. }),
+        ..,
+      ] {
+      let prop = prop_arg.to_string()
+      if desc_props.contains("get") || desc_props.contains("set") {
+        let getter = match desc_props.get("get") {
+          Some(Function(f)) => Some(f)
+          _ => None
         }
-        _ => JSValue::Undefined // TypeError
+        let setter = match desc_props.get("set") {
+          Some(Function(f)) => Some(f)
+          _ => None
+        }
+        properties[prop] = Internal(Accessor(getter, setter))
+      } else if desc_props.get("value") is Some(val) {
+        properties[prop] = val
+        // Default to undefined value if nothing specified
+      } else if not(properties.contains(prop)) {
+        properties[prop] = Undefined
       }
+      // Ignore other descriptor properties like writable, enumerable, configurable for now
+      Object(o)
     } else {
       JSValue::Undefined // TypeError
     }
   })
-  let define_property_obj = JSFunction::new(name="defineProperty", body=define_property_fn)
+  let define_property_obj = JSFunction::new(
+    name="defineProperty",
+    body=define_property_fn,
+  )
   object_fn["defineProperty"] = JSValue::Function(define_property_obj)
 
   // Object.freeze (Stub)
   let freeze_fn = Native(fn(_ctx, _this_val, args) {
-    if args.length() > 0 {
-      args[0]
+    if args is [obj, ..] {
+      obj
     } else {
       JSValue::Undefined
     }
   })
   let freeze_obj = JSFunction::new(name="freeze", body=freeze_fn)
   object_fn["freeze"] = JSValue::Function(freeze_obj)
-
   JSValue::Function(object_fn)
 }

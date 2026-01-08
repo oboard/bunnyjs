@@ -1,9 +1,6 @@
 ///|
 test "Date Constructor and Methods" {
-  let obj_proto = JSValue::Object(JSObject::{
-    properties: @hashmap.new(),
-    prototype: None,
-  })
+  let obj_proto = JSValue::Object(JSObject::{ properties: {}, prototype: None })
   let date_ctor_val = create_date_object(obj_proto)
   let date_ctor = match date_ctor_val {
     Function(f) => f
@@ -27,7 +24,7 @@ test "Date Constructor and Methods" {
   // Actually, create_date_object logic:
   // if is_constructor_call (this is Object) -> sets internal slot
 
-  let new_date_obj_props = @hashmap.new()
+  let new_date_obj_props = {}
   let new_date_obj = JSValue::Object(JSObject::{
     properties: new_date_obj_props,
     prototype: Some(date_ctor.prototype.unwrap()),
@@ -48,7 +45,7 @@ test "Date Constructor and Methods" {
   }
 
   // Test new Date("2000-01-01T00:00:00Z")
-  let iso_date_obj_props = @hashmap.new()
+  let iso_date_obj_props = {}
   let iso_date_obj = JSValue::Object(JSObject::{
     properties: iso_date_obj_props,
     prototype: Some(date_ctor.prototype.unwrap()),

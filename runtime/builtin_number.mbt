@@ -36,8 +36,8 @@ pub fn init_number_prototype(number_proto_val : JSValue) -> Unit {
           Object({ properties: { "PrimitiveValue": Number(n), .. }, .. }) => n
           _ => 0.0
         }
-        let f = if args.length() > 0 {
-          let n = args[0].to_number().to_int()
+        let f = if args is [arg0, ..] {
+          let n = arg0.to_number().to_int()
           if n < 0 || n > 100 {
             -1
           } else {
@@ -124,8 +124,8 @@ pub fn init_number_prototype(number_proto_val : JSValue) -> Unit {
 ///|
 pub fn create_number_constructor(proto : JSValue) -> JSValue {
   let ctor_fn = Native(fn(_ctx, this_val, args) {
-    let val = if args.length() > 0 {
-      match args[0] {
+    let val = if args is [arg0, ..] {
+      match arg0 {
         Number(n) => n
         String(s) =>
           @strconv.parse_double(s) catch {
@@ -139,22 +139,17 @@ pub fn create_number_constructor(proto : JSValue) -> JSValue {
     } else {
       0.0
     }
-    let is_constructor = match this_val {
-      Object(o) =>
-        match o.prototype {
-          Some(p) =>
-            match (p, proto) {
-              (Object(a), Object(b)) =>
-                physical_equal(a.properties, b.properties)
-              _ => false
-            }
-          None => false
-        }
+    let is_constructor = match (this_val, proto) {
+      (
+        Object({ prototype: Some(Object({ properties: p1, .. })), .. }),
+        Object({ properties: p2, .. }),
+      ) => physical_equal(p1, p2)
       _ => false
     }
     if is_constructor {
       match this_val {
-        Object(o) => o["PrimitiveValue"] = JSValue::Number(val)
+        Object({ properties, .. }) =>
+          properties["PrimitiveValue"] = JSValue::Number(val)
         _ => ()
       }
       JSValue::Number(val)

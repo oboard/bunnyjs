@@ -24,14 +24,18 @@ pub fn init_function_prototype(func_proto_val : JSValue) -> Unit {
       let call_fn = Native(fn(ctx, this_val, args) {
         match this_val {
           Function(f) => {
-            let this_arg = if args.length() > 0 {
-              args[0]
+            let this_arg = if args is [arg0, ..] {
+              arg0
             } else {
               JSValue::Undefined
             }
             let call_args = []
-            for i = 1; i < args.length(); i = i + 1 {
-              call_args.push(args[i])
+            match args {
+              [_, .. rest] =>
+                for arg in rest {
+                  call_args.push(arg)
+                }
+              _ => ()
             }
 
             // println("call_fn invoke: this_arg=\{this_arg}, args=\{call_args}")
@@ -49,22 +53,24 @@ pub fn init_function_prototype(func_proto_val : JSValue) -> Unit {
       let apply_fn = Native(fn(ctx, this_val, args) {
         match this_val {
           Function(f) => {
-            let this_arg = if args.length() > 0 {
-              args[0]
+            let this_arg = if args is [arg0, ..] {
+              arg0
             } else {
               JSValue::Undefined
             }
             let call_args = []
-            if args.length() > 1 {
-              match args[1] {
-                Object(obj) => {
-                  let len_val = obj["length"]
-                  let len = match len_val {
-                    Number(n) => n.to_int()
+            if args is [_, arg1, ..] {
+              match arg1 {
+                Object({ properties, .. }) => {
+                  let len = match properties.get("length") {
+                    Some(Number(n)) => n.to_int()
                     _ => 0
                   }
                   for i = 0; i < len; i = i + 1 {
-                    call_args.push(obj[i.to_string()])
+                    match properties.get(i.to_string()) {
+                      Some(val) => call_args.push(val)
+                      None => call_args.push(JSValue::Undefined)
+                    }
                   }
                 }
                 _ => ()
@@ -95,13 +101,22 @@ pub fn create_function_constructor(proto : JSValue) -> JSValue {
     // Argument handling
     let mut params_str = ""
     let mut body_str = ""
-    if args.length() > 0 {
-      body_str = args[args.length() - 1].to_string()
-      for i = 0; i < args.length() - 1; i = i + 1 {
-        if i > 0 {
-          params_str = params_str + ","
+    match args {
+      [] => ()
+      _ => {
+        let mut last_arg = JSValue::Undefined
+        let mut first = true
+        for arg in args {
+          if not(first) {
+            if params_str != "" {
+              params_str = params_str + ","
+            }
+            params_str = params_str + last_arg.to_string()
+          }
+          last_arg = arg
+          first = false
         }
-        params_str = params_str + args[i].to_string()
+        body_str = last_arg.to_string()
       }
     }
 

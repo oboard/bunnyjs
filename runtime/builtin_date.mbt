@@ -1,6 +1,6 @@
 ///|
 pub fn create_date_object(object_proto : JSValue) -> JSValue {
-  let date_proto_props = @hashmap.new()
+  let date_proto_props = {}
   let date_proto = JSValue::Object(JSObject::{
     properties: date_proto_props,
     prototype: Some(object_proto),
@@ -41,17 +41,12 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
     let now_seconds = @env.now().to_int().to_int64()
     let zone = @time.utc_zone
     let is_constructor_call = match this_val {
-      Object(_obj) => true
+      Object(_) => true
       _ => false
     }
     if is_constructor_call {
-      let zdt_opt = if args.length() == 0 {
-        Some(@time.ZonedDateTime::from_unix_second(now_seconds, zone~)) catch {
-          _ => None
-        }
-      } else {
-        let arg = args[0]
-        match arg {
+      let zdt_opt = if args is [arg0, ..] {
+        match arg0 {
           Number(n) =>
             Some(
               @time.ZonedDateTime::from_unix_second(
@@ -75,12 +70,16 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
               _ => None
             }
         }
+      } else {
+        Some(@time.ZonedDateTime::from_unix_second(now_seconds, zone~)) catch {
+          _ => None
+        }
       }
       match this_val {
-        Object(obj) => {
+        Object({ properties, .. }) => {
           match zdt_opt {
             Some(zdt) =>
-              obj["__internal_date__"] = JSValue::Internal(
+              properties["__internal_date__"] = JSValue::Internal(
                 JSInternal::Date(zdt),
               )
             None => ()
@@ -101,7 +100,7 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
   let now_fn = Native(fn(_ctx, _this, _args) {
     JSValue::Number(@env.now().to_double() * 1000.0)
   })
-  let date_ctor_props = @hashmap.new()
+  let date_ctor_props = {}
   date_ctor_props.set("prototype", date_proto)
   date_ctor_props.set(
     "now",
@@ -186,32 +185,32 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
 
   // Date.prototype.setTime(time)
   let set_time_fn = Native(fn(_ctx, this_val, args) {
-    if args.length() == 0 {
-      return JSValue::Number(@double.not_a_number)
-    }
-    let time = match args[0] {
-      Number(n) => n
-      _ => return JSValue::Number(@double.not_a_number)
-    }
-    match this_val {
-      Object(obj) => {
-        let zdt_opt = Some(
-          @time.ZonedDateTime::from_unix_second(
-            (time / 1000.0).to_int64(),
-            zone=@time.utc_zone,
-          ),
-        ) catch {
-          _ => None
-        }
-        match zdt_opt {
-          Some(zdt) => {
-            obj["__internal_date__"] = JSValue::Internal(JSInternal::Date(zdt))
-            JSValue::Number(time)
+    if args is [Number(n), ..] {
+      let time = n
+      match this_val {
+        Object({ properties, .. }) => {
+          let zdt_opt = Some(
+            @time.ZonedDateTime::from_unix_second(
+              (time / 1000.0).to_int64(),
+              zone=@time.utc_zone,
+            ),
+          ) catch {
+            _ => None
           }
-          None => JSValue::Number(@double.not_a_number)
+          match zdt_opt {
+            Some(zdt) => {
+              properties["__internal_date__"] = JSValue::Internal(
+                JSInternal::Date(zdt),
+              )
+              JSValue::Number(time)
+            }
+            None => JSValue::Number(@double.not_a_number)
+          }
         }
+        _ => JSValue::Number(@double.not_a_number)
       }
-      _ => JSValue::Number(@double.not_a_number)
+    } else {
+      JSValue::Number(@double.not_a_number)
     }
   })
   date_proto_props.set(
@@ -221,72 +220,74 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
 
   // Date.UTC
   let utc_fn = Native(fn(_ctx, _this, args) {
-    if args.length() < 2 {
-      return JSValue::Number(@double.not_a_number)
-    }
-    let y = match args[0] {
-      Number(n) => n.to_int()
-      _ => 0
-    }
-    let m = match args[1] {
-      Number(n) => n.to_int()
-      _ => 0
-    }
-    let d = if args.length() > 2 {
-      match args[2] {
-        Number(n) => n.to_int()
-        _ => 1
-      }
-    } else {
-      1
-    }
-    let h = if args.length() > 3 {
-      match args[3] {
-        Number(n) => n.to_int()
-        _ => 0
-      }
-    } else {
-      0
-    }
-    let min = if args.length() > 4 {
-      match args[4] {
-        Number(n) => n.to_int()
-        _ => 0
-      }
-    } else {
-      0
-    }
-    let s = if args.length() > 5 {
-      match args[5] {
-        Number(n) => n.to_int()
-        _ => 0
-      }
-    } else {
-      0
-    }
-    let ms = if args.length() > 6 {
-      match args[6] {
-        Number(n) => n.to_int()
-        _ => 0
-      }
-    } else {
-      0
-    }
+    match args {
+      [y_arg, m_arg, .. rest] => {
+        let y = match y_arg {
+          Number(n) => n.to_int()
+          _ => 0
+        }
+        let m = match m_arg {
+          Number(n) => n.to_int()
+          _ => 0
+        }
+        let d = match rest {
+          [d_arg, ..] =>
+            match d_arg {
+              Number(n) => n.to_int()
+              _ => 1
+            }
+          _ => 1
+        }
+        let h = match rest {
+          [_, h_arg, ..] =>
+            match h_arg {
+              Number(n) => n.to_int()
+              _ => 0
+            }
+          _ => 0
+        }
+        let min = match rest {
+          [_, _, min_arg, ..] =>
+            match min_arg {
+              Number(n) => n.to_int()
+              _ => 0
+            }
+          _ => 0
+        }
+        let s = match rest {
+          [_, _, _, s_arg, ..] =>
+            match s_arg {
+              Number(n) => n.to_int()
+              _ => 0
+            }
+          _ => 0
+        }
+        let ms = match rest {
+          [_, _, _, _, ms_arg, ..] =>
+            match ms_arg {
+              Number(n) => n.to_int()
+              _ => 0
+            }
+          _ => 0
+        }
 
-    // MoonBit time uses 1-based month
-    let zdt = @time.date_time(
-      y,
-      m + 1,
-      d,
-      hour=h,
-      minute=min,
-      second=s,
-      nanosecond=ms * 1000000,
-      zone=@time.utc_zone,
-    ) catch {
-      _ => return JSValue::Number(@double.not_a_number)
+        // MoonBit time uses 1-based month
+        let zdt = @time.date_time(
+          y,
+          m + 1,
+          d,
+          hour=h,
+          minute=min,
+          second=s,
+          nanosecond=ms * 1000000,
+          zone=@time.utc_zone,
+        ) catch {
+          _ => return JSValue::Number(@double.not_a_number)
+        }
+        JSValue::Number(zdt.to_unix_second().to_double() * 1000.0)
+      }
+      _ => JSValue::Number(@double.not_a_number)
     }
-    JSValue::Number(zdt.to_unix_second().to_double() * 1000.0)
   })
   date_ctor["UTC"] = JSValue::Function(JSFunction::new(name="UTC", body=utc_fn))
 
@@ -545,29 +546,35 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
   // Date.prototype.setFullYear(year, [month, [date]])
   // Date.prototype.setUTCFullYear(year, [month, [date]])
   let set_full_year_fn = Native(fn(_ctx, this_val, args) {
-    if args.length() == 0 {
-      return JSValue::Number(@double.not_a_number)
-    }
-    let y = match args[0] {
-      Number(n) => n.to_int()
-      _ => return JSValue::Number(@double.not_a_number)
-    }
-    update_date(this_val, fn(zdt) raise {
-      let mut z = zdt.with_year(y)
-      if args.length() > 1 {
-        match args[1] {
-          Number(m) => z = z.with_month(m.to_int() + 1)
+    if args is [y_arg, .. rest] {
+      let y = match y_arg {
+        Number(n) => n.to_int()
+        _ => return JSValue::Number(@double.not_a_number)
+      }
+      update_date(this_val, fn(zdt) raise {
+        let mut z = zdt.with_year(y)
+        match rest {
+          [m_arg, .. rest2] => {
+            match m_arg {
+              Number(m) => z = z.with_month(m.to_int() + 1)
+              _ => ()
+            }
+            match rest2 {
+              [d_arg, ..] =>
+                match d_arg {
+                  Number(d) => z = z.with_day(d.to_int())
+                  _ => ()
+                }
+              _ => ()
+            }
+          }
           _ => ()
         }
-      }
-      if args.length() > 2 {
-        match args[2] {
-          Number(d) => z = z.with_day(d.to_int())
-          _ => ()
-        }
-      }
-      Some(z)
-    })
+        Some(z)
+      })
+    } else {
+      JSValue::Number(@double.not_a_number)
+    }
   })
   date_proto_props.set(
     "setFullYear",
@@ -585,23 +592,26 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
   // Date.prototype.setMonth(month, [date])
   // Date.prototype.setUTCMonth(month, [date])
   let set_month_fn = Native(fn(_ctx, this_val, args) {
-    if args.length() == 0 {
-      return JSValue::Number(@double.not_a_number)
-    }
-    let m = match args[0] {
-      Number(n) => n.to_int()
-      _ => return JSValue::Number(@double.not_a_number)
-    }
-    update_date(this_val, fn(zdt) raise {
-      let mut z = zdt.with_month(m + 1)
-      if args.length() > 1 {
-        match args[1] {
-          Number(d) => z = z.with_day(d.to_int())
+    if args is [m_arg, .. rest] {
+      let m = match m_arg {
+        Number(n) => n.to_int()
+        _ => return JSValue::Number(@double.not_a_number)
+      }
+      update_date(this_val, fn(zdt) raise {
+        let mut z = zdt.with_month(m + 1)
+        match rest {
+          [d_arg, ..] =>
+            match d_arg {
+              Number(d) => z = z.with_day(d.to_int())
+              _ => ()
+            }
           _ => ()
         }
-      }
-      Some(z)
-    })
+        Some(z)
+      })
+    } else {
+      JSValue::Number(@double.not_a_number)
+    }
   })
   date_proto_props.set(
     "setMonth",
@@ -615,14 +625,15 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
   // Date.prototype.setDate(date)
   // Date.prototype.setUTCDate(date)
   let set_date_fn = Native(fn(_ctx, this_val, args) {
-    if args.length() == 0 {
-      return JSValue::Number(@double.not_a_number)
+    if args is [d_arg, ..] {
+      let d = match d_arg {
+        Number(n) => n.to_int()
+        _ => return JSValue::Number(@double.not_a_number)
+      }
+      update_date(this_val, fn(zdt) raise { Some(zdt.with_day(d)) })
+    } else {
+      JSValue::Number(@double.not_a_number)
     }
-    let d = match args[0] {
-      Number(n) => n.to_int()
-      _ => return JSValue::Number(@double.not_a_number)
-    }
-    update_date(this_val, fn(zdt) raise { Some(zdt.with_day(d)) })
   })
   date_proto_props.set(
     "setDate",
@@ -636,35 +647,44 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
   // Date.prototype.setHours(hour, [min, [sec, [ms]]])
   // Date.prototype.setUTCHours(hour, [min, [sec, [ms]]])
   let set_hours_fn = Native(fn(_ctx, this_val, args) {
-    if args.length() == 0 {
-      return JSValue::Number(@double.not_a_number)
+    if args is [h_arg, .. rest] {
+      let h = match h_arg {
+        Number(n) => n.to_int()
+        _ => return JSValue::Number(@double.not_a_number)
+      }
+      update_date(this_val, fn(zdt) raise {
+        let mut z = zdt.with_hour(h)
+        match rest {
+          [m_arg, .. rest2] => {
+            match m_arg {
+              Number(m) => z = z.with_minute(m.to_int())
+              _ => ()
+            }
+            match rest2 {
+              [s_arg, .. rest3] => {
+                match s_arg {
+                  Number(s) => z = z.with_second(s.to_int())
+                  _ => ()
+                }
+                match rest3 {
+                  [ms_arg, ..] =>
+                    match ms_arg {
+                      Number(ms) => z = z.with_nanosecond(ms.to_int() * 1000000)
+                      _ => ()
+                    }
+                  _ => ()
+                }
+              }
+              _ => ()
+            }
+          }
+          _ => ()
+        }
+        Some(z)
+      })
+    } else {
+      JSValue::Number(@double.not_a_number)
     }
-    let h = match args[0] {
-      Number(n) => n.to_int()
-      _ => return JSValue::Number(@double.not_a_number)
-    }
-    update_date(this_val, fn(zdt) raise {
-      let mut z = zdt.with_hour(h)
-      if args.length() > 1 {
-        match args[1] {
-          Number(m) => z = z.with_minute(m.to_int())
-          _ => ()
-        }
-      }
-      if args.length() > 2 {
-        match args[2] {
-          Number(s) => z = z.with_second(s.to_int())
-          _ => ()
-        }
-      }
-      if args.length() > 3 {
-        match args[3] {
-          Number(ms) => z = z.with_nanosecond(ms.to_int() * 1000000)
-          _ => ()
-        }
-      }
-      Some(z)
-    })
   })
   date_proto_props.set(
     "setHours",
@@ -716,23 +736,26 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
   // Date.prototype.setSeconds(sec, [ms])
   // Date.prototype.setUTCSeconds(sec, [ms])
   let set_seconds_fn = Native(fn(_ctx, this_val, args) {
-    if args.length() == 0 {
-      return JSValue::Number(@double.not_a_number)
-    }
-    let s = match args[0] {
-      Number(n) => n.to_int()
-      _ => return JSValue::Number(@double.not_a_number)
-    }
-    update_date(this_val, fn(zdt) raise {
-      let mut z = zdt.with_second(s)
-      if args.length() > 1 {
-        match args[1] {
-          Number(ms) => z = z.with_nanosecond(ms.to_int() * 1000000)
+    if args is [s_arg, .. rest] {
+      let s = match s_arg {
+        Number(n) => n.to_int()
+        _ => return JSValue::Number(@double.not_a_number)
+      }
+      update_date(this_val, fn(zdt) raise {
+        let mut z = zdt.with_second(s)
+        match rest {
+          [ms_arg, ..] =>
+            match ms_arg {
+              Number(ms) => z = z.with_nanosecond(ms.to_int() * 1000000)
+              _ => ()
+            }
           _ => ()
         }
-      }
-      Some(z)
-    })
+        Some(z)
+      })
+    } else {
+      JSValue::Number(@double.not_a_number)
+    }
   })
   date_proto_props.set(
     "setSeconds",

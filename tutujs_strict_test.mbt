@@ -3,6 +3,7 @@ fn parse_and_eval(code : String) -> @runtime.JSValue {
   @runtime.Context::create_global().eval(code)
 }
 
+///|
 test "strict mode: global directive" {
   let code =
     #| "use strict";

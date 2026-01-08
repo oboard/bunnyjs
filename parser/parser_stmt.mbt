@@ -8,13 +8,12 @@ fn Parser::parse_expression_statement(self : Parser) -> ExpressionStatement {
     self.advance()
   }
   match expression {
-    Expression::StringLiteral(s) => {
+    Expression::StringLiteral(s) =>
       if s.value == "use strict" {
-        directive = Some(
-          Directive::{ value: DirectiveLiteral::{ value: s.value.to_string() } },
-        )
+        directive = Some(Directive::{
+          value: DirectiveLiteral::{ value: s.value.to_string() },
+        })
       }
-    }
     _ => ()
   }
   { expression, directive }
@@ -84,12 +83,11 @@ fn Parser::parse_block_statement(self : Parser) -> BlockStatement {
     let stmt = self.parse_statement()
     body.push(stmt)
     match stmt {
-      Statement::ExpressionStatement(expr_stmt) => {
+      Statement::ExpressionStatement(expr_stmt) =>
         match expr_stmt.directive {
           Some(d) => directives.push(d)
           None => ()
         }
-      }
       _ => ()
     }
   }

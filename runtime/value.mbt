@@ -91,7 +91,7 @@ pub fn JSValue::bitwise_not(self : JSValue) -> JSValue {
 ///|
 pub(all) enum FunctionBody {
   User(@parser.BlockStatement)
-  Native((Context, JSValue, Array[JSValue]) -> JSValue)
+  Native((Context, JSValue, Array[JSValue]) -> JSValue raise EvalError)
 } derive(Show)
 
 ///|
@@ -115,7 +115,7 @@ pub(all) struct JSFunction {
   params : Array[String]
   body : FunctionBody
   context : Context
-  properties : @hashmap.HashMap[String, JSValue]
+  properties : Map[String, JSValue]
   prototype : JSValue? // [[Prototype]]
   strict : Bool
 } derive(Show, Eq, ToJson)
@@ -126,7 +126,7 @@ pub fn JSFunction::new(
   params? : Array[String],
   body~ : FunctionBody,
   context? : Context,
-  properties? : @hashmap.HashMap[String, JSValue],
+  properties? : Map[String, JSValue],
   prototype? : JSValue,
   strict? : Bool,
 ) -> JSFunction {
@@ -135,7 +135,7 @@ pub fn JSFunction::new(
     params: params.unwrap_or([]),
     body,
     context: context.unwrap_or(Context::new()),
-    properties: properties.unwrap_or(@hashmap.new()),
+    properties: properties.unwrap_or({}),
     prototype,
     strict: strict.unwrap_or(false),
   }
@@ -145,7 +145,7 @@ pub fn JSFunction::new(
 pub impl FromJson for JSFunction with from_json(_, _) {
   // Dummy implementation
   let ctx = Context::{
-    scope: @hashmap.new(),
+    scope: {},
     parent: None,
     pending_labels: [],
     strict: false,
@@ -155,7 +155,7 @@ pub impl FromJson for JSFunction with from_json(_, _) {
     params: [],
     body: User(@parser.BlockStatement::{ body: [], directives: [] }),
     context: ctx,
-    properties: @hashmap.new(),
+    properties: {},
     prototype: None,
     strict: false,
   }
@@ -163,7 +163,7 @@ pub impl FromJson for JSFunction with from_json(_, _) {
 
 ///|
 pub(all) struct JSObject {
-  properties : @hashmap.HashMap[String, JSValue]
+  properties : Map[String, JSValue]
   /// prototype 需要是 Optional（JSValue?），原因：JavaScript 中确实存在“没有原型”的对象。
   prototype : JSValue?
 } derive(Show, Eq)
@@ -188,7 +188,7 @@ pub impl ToJson for JSObject with to_json(_) {
 
 ///|
 pub impl FromJson for JSObject with from_json(_, _) {
-  { properties: @hashmap.new(), prototype: None }
+  { properties: {}, prototype: None }
 }
 
 ///|

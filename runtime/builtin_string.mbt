@@ -34,14 +34,7 @@ pub fn init_string_prototype(string_proto_val : JSValue) -> Unit {
             str
           _ => ""
         }
-        let pos = if args.length() > 0 {
-          match args[0] {
-            Number(n) => n.to_int()
-            _ => 0
-          }
-        } else {
-          0
-        }
+        let pos = if args is [Number(n), ..] { n.to_int() } else { 0 }
         if pos >= 0 && pos < s.length() {
           let char_code = s[pos].to_int()
           let c = match char_code.to_char() {
@@ -63,25 +56,21 @@ pub fn init_string_prototype(string_proto_val : JSValue) -> Unit {
 ///|
 pub fn create_string_constructor(proto : JSValue) -> JSValue {
   let ctor_fn = Native(fn(_ctx, this_val, args) {
-    let val = if args.length() > 0 { args[0].to_string() } else { "" }
+    let val = if args is [arg, ..] { arg.to_string() } else { "" }
     let is_constructor = match this_val {
-      Object(o) =>
-        match o.prototype {
-          Some(p) =>
-            match (p, proto) {
-              (Object(a), Object(b)) =>
-                physical_equal(a.properties, b.properties)
-              _ => false
-            }
-          None => false
+      Object({ prototype: Some(Object({ properties: p_props, .. })), .. }) =>
+        match proto {
+          Object({ properties: proto_props, .. }) =>
+            physical_equal(p_props, proto_props)
+          _ => false
         }
       _ => false
     }
     if is_constructor {
       match this_val {
-        Object(o) => {
-          o["PrimitiveValue"] = JSValue::String(val)
-          o["length"] = JSValue::Number(val.length().to_double())
+        Object({ properties, .. }) => {
+          properties["PrimitiveValue"] = JSValue::String(val)
+          properties["length"] = JSValue::Number(val.length().to_double())
         }
         _ => ()
       }

@@ -1771,6 +1771,7 @@ pub(all) struct Parser {
   mut pos : Int
 }
 pub fn Parser::new(Array[@lexer.LexToken]) -> Self
+pub fn Parser::parse_expression(Self) -> Expression
 pub fn Parser::parse_program(Self) -> Program
 
 pub(all) enum Pattern {

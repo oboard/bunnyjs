@@ -2,15 +2,12 @@
 
 ///|
 pub fn create_json_object(object_proto : JSValue) -> JSValue {
-  let json_obj = JSObject::{
-    properties: @hashmap.new(),
-    prototype: Some(object_proto),
-  }
+  let json_obj = JSObject::{ properties: {}, prototype: Some(object_proto) }
 
   // JSON.parse
   let parse_fn = Native(fn(ctx, _this_val, args) {
-    if args.length() > 0 {
-      let text = args[0].to_string()
+    if args is [arg0, ..] {
+      let text = arg0.to_string()
       // Use existing lexer and parser
       // Note: This is a loose parser (JS parser), not strict JSON parser
       let tokens = text |> @lexer.parse
@@ -37,8 +34,7 @@ pub fn create_json_object(object_proto : JSValue) -> JSValue {
 
   // JSON.stringify
   let stringify_fn = Native(fn(_ctx, _this_val, args) {
-    if args.length() > 0 {
-      let value = args[0]
+    if args is [value, ..] {
       // TODO: Handle replacer and space
       stringify(value)
     } else {
@@ -67,21 +63,24 @@ fn stringify(value : JSValue) -> JSValue {
       // Check for toJSON?
 
       // Is it Array?
-      let is_array = match o["length"] {
-        Number(_) => true // Simple heuristic
+      let is_array = match o.properties.get("length") {
+        Some(Number(_)) => true // Simple heuristic
         _ => false
       }
       if is_array {
         let mut res = "["
-        let len = match o["length"] {
-          Number(n) => n.to_int()
+        let len = match o.properties.get("length") {
+          Some(Number(n)) => n.to_int()
           _ => 0
         }
         for i = 0; i < len; i = i + 1 {
           if i > 0 {
             res = res + ","
           }
-          let val = o[i.to_string()]
+          let val = match o.properties.get(i.to_string()) {
+            Some(v) => v
+            None => Undefined
+          }
           match stringify(val) {
             String(s) => res = res + s.to_string()
             Undefined => res = res + "null" // Array elements become null if undefined
@@ -94,16 +93,16 @@ fn stringify(value : JSValue) -> JSValue {
         let mut res = "{"
         let mut first = true
         for k, v in o.properties {
-           match stringify(v) {
-             String(s) => {
-               if not(first) {
-                 res = res + ","
-               }
-               res = res + "\"" + escape_string(k) + "\":" + s.to_string()
-               first = false
-             }
-             _ => () // Skip undefined values
-           }
+          match stringify(v) {
+            String(s) => {
+              if not(first) {
+                res = res + ","
+              }
+              res = res + "\"" + escape_string(k) + "\":" + s.to_string()
+              first = false
+            }
+            _ => () // Skip undefined values
+          }
         }
         res = res + "}"
         JSValue::String(res)

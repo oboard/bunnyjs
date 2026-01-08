@@ -1,22 +1,21 @@
 ///|
 pub fn create_math_object(object_proto : JSValue) -> JSValue {
-  let math_props = @hashmap.new()
-
-  // Constants
-  math_props.set("E", JSValue::Number(2.718281828459045))
-  math_props.set("LN10", JSValue::Number(2.302585092994046))
-  math_props.set("LN2", JSValue::Number(0.6931471805599453))
-  math_props.set("LOG10E", JSValue::Number(0.4342944819032518))
-  math_props.set("LOG2E", JSValue::Number(1.4426950408889634))
-  math_props.set("PI", JSValue::Number(3.141592653589793))
-  math_props.set("SQRT1_2", JSValue::Number(0.7071067811865476))
-  math_props.set("SQRT2", JSValue::Number(1.4142135623730951))
+  let math_props = {
+    "E": JSValue::Number(2.718281828459045),
+    "LN10": JSValue::Number(2.302585092994046),
+    "LN2": JSValue::Number(0.6931471805599453),
+    "LOG10E": JSValue::Number(0.4342944819032518),
+    "LOG2E": JSValue::Number(1.4426950408889634),
+    "PI": JSValue::Number(3.141592653589793),
+    "SQRT1_2": JSValue::Number(0.7071067811865476),
+    "SQRT2": JSValue::Number(1.4142135623730951),
+  }
 
   // Methods
   let wrap_unary = fn(op : (Double) -> Double) {
     Native(fn(_ctx, _this_val, args) {
-      if args.length() > 0 {
-        let n = args[0].to_number()
+      if args is [n, ..] {
+        let n = n.to_number()
         JSValue::Number(op(n))
       } else {
         JSValue::Number(@double.not_a_number)
@@ -25,13 +24,13 @@ pub fn create_math_object(object_proto : JSValue) -> JSValue {
   }
   let wrap_binary = fn(op : (Double, Double) -> Double) {
     Native(fn(_ctx, _this_val, args) {
-      let x = if args.length() > 0 {
-        args[0].to_number()
+      let x = if args is [arg0, ..] {
+        arg0.to_number()
       } else {
         @double.not_a_number
       }
-      let y = if args.length() > 1 {
-        args[1].to_number()
+      let y = if args is [_, arg1, ..] {
+        arg1.to_number()
       } else {
         @double.not_a_number
       }
@@ -98,9 +97,8 @@ pub fn create_math_object(object_proto : JSValue) -> JSValue {
   let hypot_fn = Native(fn(_ctx, _this_val, args) {
     let mut result = 0.0
     let mut i = 0
-    let len = args.length()
-    while i < len {
-      let n = args[i].to_number()
+    for arg in args {
+      let n = arg.to_number()
       if n.is_nan() {
         result = @double.not_a_number
         break
@@ -183,10 +181,8 @@ pub fn create_math_object(object_proto : JSValue) -> JSValue {
   // max
   let max_fn = Native(fn(_ctx, _this_val, args) {
     let mut max_val = @double.neg_infinity
-    let mut i = 0
-    let len = args.length()
-    while i < len {
-      let n = args[i].to_number()
+    for arg in args {
+      let n = arg.to_number()
       if n.is_nan() {
         max_val = @double.not_a_number
         break
@@ -194,7 +190,6 @@ pub fn create_math_object(object_proto : JSValue) -> JSValue {
       if n > max_val {
         max_val = n
       }
-      i = i + 1
     }
     JSValue::Number(max_val)
   })
@@ -203,10 +198,8 @@ pub fn create_math_object(object_proto : JSValue) -> JSValue {
   // min
   let min_fn = Native(fn(_ctx, _this_val, args) {
     let mut min_val = @double.infinity
-    let mut i = 0
-    let len = args.length()
-    while i < len {
-      let n = args[i].to_number()
+    for arg in args {
+      let n = arg.to_number()
       if n.is_nan() {
         min_val = @double.not_a_number
         break
@@ -214,7 +207,6 @@ pub fn create_math_object(object_proto : JSValue) -> JSValue {
       if n < min_val {
         min_val = n
       }
-      i = i + 1
     }
     JSValue::Number(min_val)
   })

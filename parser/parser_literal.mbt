@@ -81,6 +81,7 @@ fn Parser::parse_primary(self : Parser) -> Expression {
   }
 }
 
+///|
 fn Parser::parse_array_literal(self : Parser) -> Expression {
   self.consume(TokenKind::LBracket)
   let elements : Array[ArrayElement] = []
