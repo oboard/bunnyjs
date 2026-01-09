@@ -55,22 +55,58 @@ fn lex_tokens(input : StringView, lexer : Lexer) -> Unit {
   lexmatch input with longest {
     ("`" ("([^`\\\\]|\\\\.)*" as raw) "`", rest) => {
       lexer.add_token(@tokens.TokenKind::StringLiteral, raw)
+      lexer.position += 2
       lex_tokens(rest, lexer)
     }
 
     // Whitespace
-    ("[ \t\r]+", rest) => lex_tokens(rest, lexer)
+    ("[ \t\r]+" as raw, rest) => {
+      lexer.position += raw.length()
+      lex_tokens(rest, lexer)
+    }
 
     // Newlines
-    ("\n|\r|\r\n|\u2028|\u2029", rest) => {
+    ("\n|\r|\r\n|\u2028|\u2029" as raw, rest) => {
       lexer.line += 1
-      lexer.line_start = lexer.position + 1
+      lexer.position += raw.length()
+      lexer.line_start = lexer.position
       lex_tokens(rest, lexer)
     }
 
     // Comments
-    ("//[^\r\n]*", rest) => lex_tokens(rest, lexer)
-    ("/\*[^*]*\*+([^/*][^*]*\*+)*/", rest) => lex_tokens(rest, lexer)
+    ("//[^\r\n]*" as raw, rest) => {
+      lexer.position += raw.length()
+      lex_tokens(rest, lexer)
+    }
+    ("/\*[^*]*\*+([^/*][^*]*\*+)*/" as raw, rest) => {
+      lexer.position += raw.length()
+      // Count newlines in block comment
+      for i = 0; i < raw.length(); i = i + 1 {
+        if raw[i] == '\n' {
+          lexer.line += 1
+          // line_start needs to be updated to position after this newline
+          // But calculating absolute position of this newline is tricky relative to start of raw?
+          // Actually, if we just update line count, column will be wrong for the rest of the comment?
+          // But for subsequent tokens, line_start needs to be correct (start of last line).
+          // We can find the LAST newline index.
+        }
+      }
+      // Find last newline to update line_start
+      let mut last_nl = -1
+      for i = 0; i < raw.length(); i = i + 1 {
+        if raw[i] == '\n' || raw[i] == '\r' { // Simplification
+          last_nl = i
+        }
+      }
+      if last_nl != -1 {
+        // line_start is start of block comment + last_nl + 1
+        // lexer.position is already at end of block comment.
+        // Wait. lexer.position BEFORE adding raw.length() was start of comment.
+        // So line_start = (lexer.position - raw.length()) + last_nl + 1
+        lexer.line_start = lexer.position - raw.length() + last_nl + 1
+      }
+      lex_tokens(rest, lexer)
+    }
 
     // Boolean literals
     ("true|false" as raw, rest) => {
@@ -79,12 +115,14 @@ fn lex_tokens(input : StringView, lexer : Lexer) -> Unit {
     }
 
     // String literals
-    ("\"" ("([^\\\"\\\\]|\\\\.)*" as raw) "\"", rest) => {
+    ("\"" ("([^\\\"\\\\]|[\\\\].)*" as raw) "\"", rest) => {
       lexer.add_token(@tokens.TokenKind::StringLiteral, raw)
+      lexer.position += 2
       lex_tokens(rest, lexer)
     }
-    ("'" ("([^'\\\\]|\\\\.)*" as raw) "'", rest) => {
+    ("'" ("([^'\\\\]|[\\\\].)*" as raw) "'", rest) => {
       lexer.add_token(@tokens.TokenKind::StringLiteral, raw)
+      lexer.position += 2
       lex_tokens(rest, lexer)
     }
 
@@ -435,6 +473,26 @@ fn lex_tokens(input : StringView, lexer : Lexer) -> Unit {
 
     // Error case
     ("." as c, rest) => {
+      let start = lexer.line_start
+      let mut end = lexer.input.length()
+      let mut i = start
+      while i < end {
+        if lexer.input[i] == '\n' {
+          end = i
+          break
+        }
+        i = i + 1
+      }
+      // let line_content = lexer.input.substring(start=start, end=end)
+      // println("Lexer Illegal: '" + c.to_string() + "' at line " + lexer.line.to_string() + " column " + (lexer.position - lexer.line_start + 1).to_string())
+      // println("Line content: " + line_content)
+      // println("Char code at position: " + lexer.input[lexer.position].to_int().to_string())
+      // if lexer.position > 0 {
+      //   println("Prev char code: " + lexer.input[lexer.position - 1].to_int().to_string())
+      // }
+      // if lexer.position + 1 < lexer.input.length() {
+      //   println("Next char code: " + lexer.input[lexer.position + 1].to_int().to_string())
+      // }
       lexer.add_token(@tokens.TokenKind::Illegal, c.to_string())
       lex_tokens(rest, lexer)
     }

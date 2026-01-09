@@ -292,8 +292,22 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
   date_ctor["UTC"] = JSValue::Function(JSFunction::new(name="UTC", body=utc_fn))
 
   // Date.parse (minimal implementation)
-  let parse_fn = Native(fn(_ctx, _this, _args) {
-    JSValue::Number(@double.not_a_number) // Not implemented yet, returns NaN
+  let parse_fn = Native(fn(_ctx, _this, args) {
+    if args is [JSValue::String(s), ..] {
+      try {
+        let pdt = @time.PlainDateTime::from_string(s.to_string())
+        let zdt = @time.ZonedDateTime::from_plain_datetime(
+          pdt,
+          zone=@time.utc_zone,
+        )
+        let unix_seconds = zdt.to_unix_second()
+        JSValue::Number(unix_seconds.to_double() * 1000.0)
+      } catch {
+        _ => JSValue::Number(@double.not_a_number)
+      }
+    } else {
+      JSValue::Number(@double.not_a_number)
+    }
   })
   date_ctor["parse"] = JSValue::Function(
     JSFunction::new(name="parse", body=parse_fn),

@@ -85,6 +85,44 @@ pub fn init_function_prototype(func_proto_val : JSValue) -> Unit {
       })
       let apply_obj = JSFunction::new(name="apply", body=apply_fn)
       obj["apply"] = JSValue::Function(apply_obj)
+
+      // bind (ES5)
+      let bind_fn = Native(fn(_ctx, this_val, args) {
+        match this_val {
+          Function(f) => {
+            let this_arg = if args is [arg0, ..] {
+              arg0
+            } else {
+              JSValue::Undefined
+            }
+            let bound_args = []
+            if args is [_, .. rest] {
+              for arg in rest {
+                bound_args.push(arg)
+              }
+            }
+            let bound_fn_body = Native(fn(ctx, _this, call_args) {
+              let final_args = []
+              for arg in bound_args {
+                final_args.push(arg)
+              }
+              for arg in call_args {
+                final_args.push(arg)
+              }
+              ctx.invoke(f, this_arg, final_args)
+            })
+            let bound_obj = JSFunction::new(
+              name="bound " + f.name.unwrap_or(""),
+              body=bound_fn_body,
+              prototype=func_proto_val,
+            )
+            JSValue::Function(bound_obj)
+          }
+          _ => JSValue::Undefined // TypeError
+        }
+      })
+      let bind_obj = JSFunction::new(name="bind", body=bind_fn)
+      obj["bind"] = JSValue::Function(bind_obj)
     }
     _ => ()
   }

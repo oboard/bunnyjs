@@ -86,36 +86,6 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
   let regexp_ctor_val = JSValue::Function(regexp_ctor)
   regexp_proto_props.set("constructor", regexp_ctor_val)
 
-  // RegExp.prototype.test(string)
-  let test_fn = Native(fn(_ctx, this_val, args) {
-    let str = if args is [JSValue::String(s), ..] {
-      s.to_string()
-    } else {
-      "undefined"
-    }
-    match this_val {
-      Object(
-        {
-          properties: {
-            "__internal_regexp__": JSValue::Internal(JSInternal::RegExp(re, _)),
-            ..
-          },
-          ..,
-        }
-      ) => {
-        // execute returns MatchResult? Checking if results is non-empty
-        let res = re.execute(str)
-        let matched = res.results().length() > 0
-        JSValue::Boolean(matched)
-      }
-      _ => JSValue::Boolean(false)
-    }
-  })
-  regexp_proto_props.set(
-    "test",
-    JSValue::Function(JSFunction::new(name="test", body=test_fn)),
-  )
-
   // RegExp.prototype.exec(string)
   let exec_fn = Native(fn(_ctx, this_val, args) {
     let str = if args is [JSValue::String(s), ..] {
@@ -129,21 +99,44 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
           properties: {
             "__internal_regexp__": JSValue::Internal(JSInternal::RegExp(re, _)),
             ..
-          },
+          } as properties,
           ..,
         }
       ) => {
-        let res = re.execute(str)
+        let global = match properties.get("global") {
+          Some(JSValue::Boolean(b)) => b
+          _ => false
+        }
+        let last_index = if global {
+          match properties.get("lastIndex") {
+            Some(JSValue::Number(n)) => n.to_int()
+            _ => 0
+          }
+        } else {
+          0
+        }
+        if last_index < 0 || last_index > str.length() {
+          if global {
+            properties.set("lastIndex", JSValue::Number(0.0))
+          }
+          return JSValue::Null
+        }
+        let search_str = str[last_index:].to_string() catch { _ => "" }
+        let res = re.execute(search_str)
         if res.results().length() > 0 {
-          // Construct result array
-          // For simple exec, just return first match in an array-like object with index and input
           let match_content = res.results()[0]
           let match_str = match match_content {
             Some(s) => s.to_string()
             None => ""
           }
-          // Calculate index using length of text before match
-          let match_index = res.before().length()
+          let relative_index = res.before().length()
+          let match_index = last_index + relative_index
+          if global {
+            properties.set(
+              "lastIndex",
+              JSValue::Number((match_index + match_str.length()).to_double()),
+            )
+          }
           let result_array_props = {}
           result_array_props.set("0", JSValue::String(match_str))
           result_array_props.set(
@@ -154,9 +147,12 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
           result_array_props.set("length", JSValue::Number(1.0))
           JSValue::Object(JSObject::{
             properties: result_array_props,
-            prototype: Some(object_proto), // Array prototype ideally, but Object for now
+            prototype: Some(object_proto),
           })
         } else {
+          if global {
+            properties.set("lastIndex", JSValue::Number(0.0))
+          }
           JSValue::Null
         }
       }
@@ -166,6 +162,22 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
   regexp_proto_props.set(
     "exec",
     JSValue::Function(JSFunction::new(name="exec", body=exec_fn)),
+  )
+
+  // RegExp.prototype.test(string)
+  let test_fn = Native(fn(ctx, this_val, args) {
+    let exec_res = match exec_fn {
+      Native(f) => f(ctx, this_val, args)
+      _ => JSValue::Null
+    }
+    match exec_res {
+      Null => JSValue::Boolean(false)
+      _ => JSValue::Boolean(true)
+    }
+  })
+  regexp_proto_props.set(
+    "test",
+    JSValue::Function(JSFunction::new(name="test", body=test_fn)),
   )
 
   // RegExp.prototype.toString()

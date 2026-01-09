@@ -7,11 +7,10 @@ pub suberror EvalError {
 } derive(Show)
 
 ///|
-pub fn Context::eval(self : Context, code : &Show) -> JSValue {
-  let lex = code.to_string() |> @lexer.parse
-  // println(lex)
-  let ast = lex |> @parser.parse
-  // println(ast)
+fn Context::eval_ast(
+  self : Context,
+  ast : @parser.Program,
+) -> Result[JSValue, JSValue] {
   // Check for "use strict" in global scope
   let mut strict = false
   for d in ast.directives {
@@ -28,13 +27,58 @@ pub fn Context::eval(self : Context, code : &Show) -> JSValue {
     try {
       res = self.evaluate(Statement(node))
     } catch {
-      EvalError::Return(v) => return v // Top-level return
+      EvalError::Return(v) => return Ok(v) // Top-level return
       EvalError::Break(_) => () // Illegal at top-level in strict JS, but lenient here
       EvalError::Continue(_) => () // Illegal
-      EvalError::Throw(v) => abort("Uncaught exception: " + v.to_string())
+      EvalError::Throw(v) => return Err(v)
     }
   }
-  res
+  Ok(res)
+}
+
+///|
+pub fn Context::eval(self : Context, code : &Show) -> JSValue {
+  let lex = code.to_string() |> @lexer.parse
+  // println(lex)
+  let ast = lex |> @parser.parse
+  // println(ast)
+  match self.eval_ast(ast) {
+    Ok(v) => v
+    Err(v) => abort("Uncaught exception: " + v.to_string())
+  }
+}
+
+///|
+pub fn Context::eval_safe(
+  self : Context,
+  code : &Show,
+) -> Result[JSValue, JSValue] {
+  let code_str = code.to_string()
+  let lex = code_str |> @lexer.parse
+  let ast = lex |> @parser.parse
+  match self.eval_ast(ast) {
+    Ok(v) => Ok(v)
+    Err(v) => Err(v)
+  }
+}
+
+///|
+pub fn format_js_error(val : JSValue) -> String {
+  match val {
+    Object(obj) => {
+      let name = match obj.op_get("name") {
+        String(s) => s.to_string()
+        _ => "Error"
+      }
+      let message = match obj.op_get("message") {
+        String(s) => s.to_string()
+        _ => ""
+      }
+      name + ": " + message
+    }
+    String(s) => s.to_string()
+    _ => val.to_string()
+  }
 }
 
 ///|

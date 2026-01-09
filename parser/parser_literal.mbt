@@ -76,7 +76,7 @@ fn Parser::parse_primary(self : Parser) -> Expression {
       let token = self.peek()
       self.advance()
       // println("Unexpected token in parse_primary: \{token.kind}")
-      abort("Unexpected token in parse_primary: \{token.kind}")
+      abort("Unexpected token in parse_primary: \{token.kind} at \{token.line}:\{token.column}, value: \{token.value}")
     }
   }
 }

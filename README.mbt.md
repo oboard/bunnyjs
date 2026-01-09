@@ -16,8 +16,8 @@ TutuJS is an experimental JavaScript lexer, parser and interpreter written in Mo
 - [x] `for` Loops
 - [x] `switch` Statements
 - [x] `break` / `continue`
-- [ ] `try` / `catch` / `throw`
-- [ ] Labelled Statements
+- [x] `try` / `catch` / `throw`
+- [x] Labelled Statements
 
 ### Operators
 - [x] Arithmetic (`+`, `-`, `*`, `/`, `%`)
@@ -46,9 +46,9 @@ TutuJS is an experimental JavaScript lexer, parser and interpreter written in Mo
 - [x] `String` Constructor & Methods
 - [x] `Number` / `Boolean` Constructors
 - [x] `Math` Object
-- [ ] `Date` Object 
-- [ ] `RegExp` Object
-- [ ] `Error` Constructors (`Error`, `TypeError`, etc.)
+- [x] `Date` Object 
+- [x] `RegExp` Object
+- [x] `Error` Constructors (`Error`, `TypeError`, etc.)
 
 ## 2. ES5 (Stability & APIs)
 
@@ -58,7 +58,7 @@ TutuJS is an experimental JavaScript lexer, parser and interpreter written in Mo
 - [x] `Object` Methods (`keys`, `create`, `defineProperty`, `freeze`, etc.)
 - [x] `Array` Iteration Methods (`forEach`, `map`, `filter`, `reduce`, `every`, `some`)
 - [x] `Function.prototype.call`, `apply`
-- [ ] `Function.prototype.bind`
+- [x] `Function.prototype.bind`
 
 ## 3. ES6 / ES2015 (Modern Era)
 

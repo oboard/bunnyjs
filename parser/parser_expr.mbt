@@ -622,6 +622,9 @@ fn Parser::parse_arguments(self : Parser) -> Array[Expression] {
       args.push(self.parse_assignment()) // ArgumentList allows AssignmentExpression
       if self.peek().kind == TokenKind::Comma {
         self.advance()
+        if self.peek().kind == TokenKind::RParen {
+          break
+        }
       } else {
         break
       }

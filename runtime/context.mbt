@@ -196,6 +196,26 @@ pub fn Context::create_global() -> Context {
   // JSON Object
   let json_val = create_json_object(object_proto_val)
   ctx.scope.set("JSON", json_val)
+
+  // Error.prototype
+  let error_proto_val = create_error_prototype(object_proto_val)
+
+  // Error Constructor
+  let error_ctor_val = create_error_constructor(
+    "Error", error_proto_val, func_proto_val,
+  )
+  ctx.scope.set("Error", error_ctor_val)
+
+  // Native Errors
+  let native_errors = [
+    "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError",
+  ]
+  for name in native_errors {
+    let ctor = create_native_error_constructor(
+      name, error_proto_val, func_proto_val,
+    )
+    ctx.scope.set(name, ctor)
+  }
   ctx
 }
 
