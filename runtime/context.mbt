@@ -135,6 +135,7 @@ pub fn Context::create_global() -> Context {
     prototype=func_proto_val,
   )
   let array_fn_val = JSValue::Function(array_fn)
+  init_array_constructor(array_fn_val)
 
   // Array.prototype.constructor = Array
   array_proto_props.set("constructor", array_fn_val)

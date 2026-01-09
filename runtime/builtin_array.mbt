@@ -608,7 +608,10 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
                   let res = ctx.invoke(f, JSValue::Undefined, [a, b]) catch {
                     _ => JSValue::Number(0.0)
                   }
-                  res.to_number().to_int()
+                  match res {
+                    Number(n) => n.to_int()
+                    _ => 0
+                  }
                 }
                 None => {
                   let sa = a.to_string()
@@ -624,7 +627,12 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
               }
             })
             for i = 0; i < len_int; i = i + 1 {
-              properties[i.to_string()] = arr[i]
+              let key = i.to_string()
+              if arr[i] == JSValue::Undefined {
+                properties.remove(key)
+              } else {
+                properties[key] = arr[i]
+              }
             }
             this_val
           }
@@ -641,15 +649,7 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
             { properties: { "length": Number(len), .. } as properties, .. }
           ) => {
             let len_int = len.to_int()
-            let start_arg = if args is [val, ..] {
-              val
-            } else {
-              JSValue::Undefined
-            }
-            let start = match start_arg {
-              Number(n) => n.to_int()
-              _ => 0
-            }
+            let start = if args is [Number(n), ..] { n.to_int() } else { 0 }
             let mut actual_start = start
             if actual_start < 0 {
               actual_start = len_int + actual_start
@@ -660,30 +660,28 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
             if actual_start > len_int {
               actual_start = len_int
             }
-            let delete_count_arg = if args.length() >= 2 {
-              Some(args[1])
+            let delete_count = if args is [_, Number(n), ..] {
+              n.to_int()
+            } else if args.length() >= 2 {
+              0 // Should handle non-number
             } else {
-              None
+              len_int - actual_start
             }
-            let delete_count = match delete_count_arg {
-              Some(Number(n)) => {
-                let n = n.to_int()
-                if n < 0 {
-                  0
-                } else if n > len_int - actual_start {
-                  len_int - actual_start
-                } else {
-                  n
-                }
-              }
-              Some(_) => 0
-              None => len_int - actual_start
+            let mut delete_count = delete_count
+            if delete_count < 0 {
+              delete_count = 0
             }
-            let items = []
-            if args.length() > 2 {
+            if delete_count > len_int - actual_start {
+              delete_count = len_int - actual_start
+            }
+            let items = if args.length() > 2 {
+              let items = []
               for i = 2; i < args.length(); i = i + 1 {
                 items.push(args[i])
               }
+              items
+            } else {
+              []
             }
             let deleted_elements = JSObject::{
               properties: {},
@@ -783,6 +781,103 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
       })
       let values_obj = JSFunction::new(name="values", body=values_fn)
       obj["values"] = JSValue::Function(values_obj)
+    }
+    _ => ()
+  }
+}
+
+///|
+pub fn init_array_constructor(array_ctor : JSValue) -> Unit {
+  match array_ctor {
+    Function(obj) => {
+      // isArray
+      let is_array_fn = Native(fn(_ctx, _this_val, args) {
+        match args {
+          [val, ..] =>
+            match val {
+              Object(o) =>
+                match o.properties.get("length") {
+                  Some(Number(_)) => JSValue::Boolean(true) // Weak check
+                  _ => JSValue::Boolean(false)
+                }
+              _ => JSValue::Boolean(false)
+            }
+          _ => JSValue::Boolean(false)
+        }
+      })
+      let is_array_obj = JSFunction::new(name="isArray", body=is_array_fn)
+      obj.properties["isArray"] = JSValue::Function(is_array_obj)
+
+      // from
+      let from_fn = Native(fn(ctx, this_val, args) raise EvalError {
+        let items = if args is [items, ..] {
+          items
+        } else {
+          JSValue::Undefined
+        }
+        let map_fn : Option[JSFunction] = if args is [_, arg_map_fn, ..] {
+          match arg_map_fn {
+            Function(f) => Some(f)
+            Undefined => None
+            _ =>
+              raise EvalError::Throw(
+                String("TypeError: Array.from map function must be callable"),
+              )
+          }
+        } else {
+          None
+        }
+        let this_arg = if args is [_, _, this_arg, ..] {
+          this_arg
+        } else {
+          JSValue::Undefined
+        }
+        match items {
+          Null | Undefined =>
+            raise EvalError::Throw(
+              String(
+                "TypeError: Array.from requires an array-like object - cannot convert null or undefined to object",
+              ),
+            )
+          _ => ()
+        }
+        let len_val = items.get_property("length")
+        let len = match len_val {
+          Number(n) => n.to_int()
+          _ => 0
+        }
+        let len = if len < 0 { 0 } else { len }
+        let new_array = JSObject::{
+          properties: {},
+          prototype: match this_val {
+            Function(f) => f.properties.get("prototype")
+            _ =>
+              match ctx.resolve("Array") {
+                Function(f) => f.properties.get("prototype")
+                _ => None
+              }
+          },
+        }
+        new_array.properties["length"] = JSValue::Number(len.to_double())
+        for k = 0; k < len; k = k + 1 {
+          let key = k.to_string()
+          let val = items.get_property(key)
+          let mapped_val = match map_fn {
+            Some(f) =>
+              ctx.invoke(f, this_arg, [
+                val,
+                JSValue::Number(k.to_double()),
+              ]) catch {
+                _ => JSValue::Undefined
+              }
+            None => val
+          }
+          new_array.properties[key] = mapped_val
+        }
+        JSValue::Object(new_array)
+      })
+      let from_obj = JSFunction::new(name="from", body=from_fn)
+      obj.properties["from"] = JSValue::Function(from_obj)
     }
     _ => ()
   }
