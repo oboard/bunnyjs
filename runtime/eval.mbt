@@ -828,9 +828,7 @@ fn Context::evaluate(
                 arr_props.set(len.to_string(), val)
                 len += 1
               }
-              OmittedExpression => {
-                len += 1
-              }
+              OmittedExpression => len += 1
               _ => ()
             }
           }
