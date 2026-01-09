@@ -1,6 +1,12 @@
 <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="60.0" cy="60.0" r="55.0" fill="none" stroke="#eee" stroke-width="10" />
-  <path d="M 60.0 5.0 A 55.0 55.0 0 0 1 114.91530858844018 56.948953845582075" fill="none" stroke="#e74c3c" stroke-width="10" stroke-linecap="round" />
-  <text x="60.0" y="60.0" text-anchor="middle" dy="0.3em" font-family="Arial, sans-serif" font-size="20" fill="#333">24.1%</text>
-  <text x="60.0" y="80.0" text-anchor="middle" dy="0.3em" font-family="Arial, sans-serif" font-size="10" fill="#666">430/1783</text>
+  <!-- Background Circle -->
+  <circle cx="60.0" cy="60.0" r="55.0" fill="none" stroke="#f0f0f0" stroke-width="10" />
+  
+  <!-- Progress Circle -->
+  <circle cx="60.0" cy="60.0" r="55.0" fill="none" stroke="#ff4d4f" stroke-width="10"
+          stroke-dasharray="345.57519189487726" stroke-dashoffset="259.9082065793777" transform="rotate(-90 60.0 60.0)" stroke-linecap="round" />
+  
+  <!-- Text -->
+  <text x="50%" y="45%" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="20" fill="#333" font-weight="bold">24.8%</text>
+  <text x="50%" y="65%" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="10" fill="#666">442/1783</text>
 </svg>
