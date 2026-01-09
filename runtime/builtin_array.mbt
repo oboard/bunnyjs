@@ -89,7 +89,9 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
               JSValue::Undefined
             } else {
               raise EvalError::Throw(
-                String("TypeError: forEach() expects a function as first argument"),
+                String(
+                  "TypeError: forEach() expects a function as first argument",
+                ),
               )
             }
           _ => JSValue::Undefined
@@ -177,7 +179,9 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
               JSValue::Object(new_array)
             } else {
               raise EvalError::Throw(
-                String("TypeError: filter() expects a function as first argument"),
+                String(
+                  "TypeError: filter() expects a function as first argument",
+                ),
               )
             }
           _ => JSValue::Undefined
@@ -213,7 +217,9 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
                 }
                 if not(k_present) {
                   raise EvalError::Throw(
-                    String("TypeError: Reduce of empty array with no initial value"),
+                    String(
+                      "TypeError: Reduce of empty array with no initial value",
+                    ),
                   )
                 }
               }
@@ -234,7 +240,9 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
               accumulator
             } else {
               raise EvalError::Throw(
-                String("TypeError: reduce() expects a function as first argument"),
+                String(
+                  "TypeError: reduce() expects a function as first argument",
+                ),
               )
             }
           _ => JSValue::Undefined
@@ -276,7 +284,9 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
               )
             } else {
               raise EvalError::Throw(
-                String("TypeError: every() expects a function as first argument"),
+                String(
+                  "TypeError: every() expects a function as first argument",
+                ),
               )
             }
           _ => JSValue::Boolean(true)
@@ -359,11 +369,10 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
       // toString
       let to_string_fn = Native(fn(ctx, this_val, _args) {
         match this_val.get_property("join") {
-          Function(join_func) => {
+          Function(join_func) =>
             ctx.invoke(join_func, this_val, []) catch {
               _ => JSValue::String("[object Array]")
             }
-          }
           _ => JSValue::String("[object Object]")
         }
       })
@@ -788,34 +797,32 @@ pub fn init_array_prototype(array_proto_val : JSValue) -> Unit {
 
 ///|
 pub fn init_array_constructor(array_ctor : JSValue) -> Unit {
+  println("DEBUG: init_array_constructor called")
   match array_ctor {
     Function(obj) => {
+      let func_proto = obj.prototype
+      let func_proto_val = func_proto.unwrap_or(JSValue::Undefined)
       // isArray
       let is_array_fn = Native(fn(_ctx, _this_val, args) {
-        match args {
-          [val, ..] =>
-            match val {
-              Object(o) =>
-                match o.properties.get("length") {
-                  Some(Number(_)) => JSValue::Boolean(true) // Weak check
-                  _ => JSValue::Boolean(false)
-                }
-              _ => JSValue::Boolean(false)
-            }
-          _ => JSValue::Boolean(false)
-        }
+        JSValue::Boolean(
+          match args {
+            [Object({ properties: { "length": Number(_), .. }, .. }), ..] =>
+              true
+            _ => false
+          },
+        )
       })
-      let is_array_obj = JSFunction::new(name="isArray", body=is_array_fn)
+      let is_array_obj = JSFunction::new(
+        name="isArray",
+        body=is_array_fn,
+        prototype=func_proto_val,
+      )
       obj.properties["isArray"] = JSValue::Function(is_array_obj)
 
       // from
       let from_fn = Native(fn(ctx, this_val, args) raise EvalError {
-        let items = if args is [items, ..] {
-          items
-        } else {
-          JSValue::Undefined
-        }
-        let map_fn : Option[JSFunction] = if args is [_, arg_map_fn, ..] {
+        let items = if args is [items, ..] { items } else { JSValue::Undefined }
+        let map_fn : JSFunction? = if args is [_, arg_map_fn, ..] {
           match arg_map_fn {
             Function(f) => Some(f)
             Undefined => None
@@ -847,36 +854,145 @@ pub fn init_array_constructor(array_ctor : JSValue) -> Unit {
           _ => 0
         }
         let len = if len < 0 { 0 } else { len }
-        let new_array = JSObject::{
-          properties: {},
-          prototype: match this_val {
-            Function(f) => f.properties.get("prototype")
-            _ =>
-              match ctx.resolve("Array") {
-                Function(f) => f.properties.get("prototype")
-                _ => None
-              }
-          },
+        println("DEBUG: Array.from len=" + len.to_string())
+
+        // Debug items properties
+        match items {
+          Object(obj) => {
+            println("DEBUG: items keys:")
+            obj.properties.each(fn(k, v) {
+              println("  key: " + k + ", value: " + v.to_string())
+            })
+          }
+          _ => println("DEBUG: items is not an Object")
         }
-        new_array.properties["length"] = JSValue::Number(len.to_double())
+
+        // Construct new_array
+        let new_array_val = match this_val {
+          Function(ctor) => {
+            // Construct(C, [len])
+            let proto = match ctor.properties.get("prototype") {
+              Some(p) => p
+              None =>
+                match ctx.resolve("Object") {
+                  Function(f) => f.properties.get("prototype").unwrap()
+                  _ => JSValue::Undefined
+                }
+            }
+            let obj = JSObject::{ properties: {}, prototype: Some(proto) }
+            let this_obj = JSValue::Object(obj)
+            let res = ctx.invoke(ctor, this_obj, [
+              JSValue::Number(len.to_double()),
+            ]) catch {
+              EvalError::Return(v) => v // Handle return from constructor if needed? invoke handles it.
+              e => raise e
+            }
+            match res {
+              Object(_) | Function(_) => res
+              _ => this_obj
+            }
+          }
+          _ => {
+            // ArrayCreate(len)
+            let proto = match ctx.resolve("Array") {
+              Function(f) => f.properties.get("prototype")
+              _ => None
+            }
+            let obj = JSObject::{ properties: {}, prototype: proto }
+            obj.properties["length"] = JSValue::Number(len.to_double())
+            JSValue::Object(obj)
+          }
+        }
+        let new_array_obj = match new_array_val {
+          Object(o) => o
+          _ =>
+            raise EvalError::Throw(
+              JSValue::String("TypeError: Array.from result must be an object"),
+            )
+        }
         for k = 0; k < len; k = k + 1 {
           let key = k.to_string()
           let val = items.get_property(key)
+          println(
+            "DEBUG: Array.from k=" +
+            k.to_string() +
+            " key=" +
+            key +
+            " val=" +
+            val.to_string(),
+          )
           let mapped_val = match map_fn {
             Some(f) =>
-              ctx.invoke(f, this_arg, [
-                val,
-                JSValue::Number(k.to_double()),
-              ]) catch {
+              ctx.invoke(f, this_arg, [val, JSValue::Number(k.to_double())]) catch {
                 _ => JSValue::Undefined
               }
             None => val
           }
-          new_array.properties[key] = mapped_val
+
+          // CreateDataPropertyOrThrow logic
+          let extensible = match
+            new_array_obj.properties.get("__internal_extensible__") {
+            Some(Boolean(false)) => false
+            _ => true
+          }
+          // println("DEBUG: Array.from key=" + key + " extensible=" + extensible.to_string())
+          if not(extensible) && not(new_array_obj.properties.contains(key)) {
+            let type_error = match ctx.resolve("TypeError") {
+              Function(f) =>
+                ctx.invoke(f, JSValue::Undefined, [
+                  JSValue::String(
+                    "Cannot define property on non-extensible object",
+                  ),
+                ]) catch {
+                  _ =>
+                    JSValue::String(
+                      "TypeError: Cannot define property on non-extensible object",
+                    )
+                }
+              _ =>
+                JSValue::String(
+                  "TypeError: Cannot define property on non-extensible object",
+                )
+            }
+            raise EvalError::Throw(type_error)
+          }
+          new_array_obj.properties[key] = mapped_val
         }
-        JSValue::Object(new_array)
+
+        // CreateDataPropertyOrThrow logic for length
+        let extensible = match
+          new_array_obj.properties.get("__internal_extensible__") {
+          Some(Boolean(false)) => false
+          _ => true
+        }
+        if not(extensible) && not(new_array_obj.properties.contains("length")) {
+          let type_error = match ctx.resolve("TypeError") {
+            Function(f) =>
+              ctx.invoke(f, JSValue::Undefined, [
+                JSValue::String(
+                  "Cannot define property 'length' on non-extensible object",
+                ),
+              ]) catch {
+                _ =>
+                  JSValue::String(
+                    "TypeError: Cannot define property 'length' on non-extensible object",
+                  )
+              }
+            _ =>
+              JSValue::String(
+                "TypeError: Cannot define property 'length' on non-extensible object",
+              )
+          }
+          raise EvalError::Throw(type_error)
+        }
+        new_array_obj.properties["length"] = JSValue::Number(len.to_double())
+        new_array_val
       })
-      let from_obj = JSFunction::new(name="from", body=from_fn)
+      let from_obj = JSFunction::new(
+        name="from",
+        body=from_fn,
+        prototype=func_proto_val,
+      )
       obj.properties["from"] = JSValue::Function(from_obj)
     }
     _ => ()

@@ -38,6 +38,8 @@ pub fn create_string_constructor(JSValue) -> JSValue
 
 pub fn format_js_error(JSValue) -> String
 
+pub fn init_array_constructor(JSValue) -> Unit
+
 pub fn init_array_prototype(JSValue) -> Unit
 
 pub fn init_boolean_prototype(JSValue) -> Unit

@@ -40,7 +40,8 @@ pub fn init_function_prototype(func_proto_val : JSValue) -> Unit {
 
             // println("call_fn invoke: this_arg=\{this_arg}, args=\{call_args}")
             ctx.invoke(f, this_arg, call_args) catch {
-              _ => JSValue::Undefined
+              EvalError::Return(v) => v
+              e => raise e
             }
           }
           _ => JSValue::Undefined // TypeError
