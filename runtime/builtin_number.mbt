@@ -152,10 +152,8 @@ pub fn create_number_constructor(proto : JSValue) -> JSValue {
           properties["PrimitiveValue"] = JSValue::Number(val)
         _ => ()
       }
-      JSValue::Number(val)
-    } else {
-      JSValue::Number(val)
     }
+    JSValue::Number(val)
   })
   let ctor_obj = JSFunction::new(name="Number", body=ctor_fn)
   ctor_obj["prototype"] = proto

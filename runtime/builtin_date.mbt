@@ -145,18 +145,20 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
 
   // Date.prototype.getTime()
   let get_time_fn = Native(fn(_ctx, this_val, _args) {
-    match this_val {
-      Object(
-        {
-          properties: {
-            "__internal_date__": JSValue::Internal(JSInternal::Date(zdt)),
-            ..
-          },
-          ..,
-        }
-      ) => JSValue::Number(zdt.to_unix_second().to_double() * 1000.0)
-      _ => JSValue::Number(@double.not_a_number)
-    }
+    JSValue::Number(
+      match this_val {
+        Object(
+          {
+            properties: {
+              "__internal_date__": JSValue::Internal(JSInternal::Date(zdt)),
+              ..
+            },
+            ..,
+          }
+        ) => zdt.to_unix_second().to_double() * 1000.0
+        _ => @double.not_a_number
+      },
+    )
   })
   date_proto_props.set(
     "getTime",
@@ -185,33 +187,35 @@ pub fn create_date_object(object_proto : JSValue) -> JSValue {
 
   // Date.prototype.setTime(time)
   let set_time_fn = Native(fn(_ctx, this_val, args) {
-    if args is [Number(n), ..] {
-      let time = n
-      match this_val {
-        Object({ properties, .. }) => {
-          let zdt_opt = Some(
-            @time.ZonedDateTime::from_unix_second(
-              (time / 1000.0).to_int64(),
-              zone=@time.utc_zone,
-            ),
-          ) catch {
-            _ => None
-          }
-          match zdt_opt {
-            Some(zdt) => {
-              properties["__internal_date__"] = JSValue::Internal(
-                JSInternal::Date(zdt),
-              )
-              JSValue::Number(time)
+    JSValue::Number(
+      if args is [Number(n), ..] {
+        let time = n
+        match this_val {
+          Object({ properties, .. }) => {
+            let zdt_opt = Some(
+              @time.ZonedDateTime::from_unix_second(
+                (time / 1000.0).to_int64(),
+                zone=@time.utc_zone,
+              ),
+            ) catch {
+              _ => None
             }
-            None => JSValue::Number(@double.not_a_number)
+            match zdt_opt {
+              Some(zdt) => {
+                properties["__internal_date__"] = JSValue::Internal(
+                  JSInternal::Date(zdt),
+                )
+                time
+              }
+              None => @double.not_a_number
+            }
           }
+          _ => @double.not_a_number
         }
-        _ => JSValue::Number(@double.not_a_number)
-      }
-    } else {
-      JSValue::Number(@double.not_a_number)
-    }
+      } else {
+        @double.not_a_number
+      },
+    )
   })
   date_proto_props.set(
     "setTime",

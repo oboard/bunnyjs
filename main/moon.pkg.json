@@ -2,8 +2,8 @@
   "is-main": true,
   "import": [
     "oboard/readline",
-    "TheWaWaR/clap",
     "oboard/tutujs/runtime",
-    "oboard/tutujs/config"
+    "oboard/tutujs/config",
+    "moonbitlang/x/fs"
   ]
 }

@@ -43,7 +43,9 @@ pub fn create_regexp_object(
       let err = JSObject::{
         properties: {
           "name": JSValue::String("SyntaxError"),
-          "message": JSValue::String("Invalid regular expression: " + effective_pattern),
+          "message": JSValue::String(
+            "Invalid regular expression: " + effective_pattern,
+          ),
         },
         prototype: syntax_error_proto,
       }

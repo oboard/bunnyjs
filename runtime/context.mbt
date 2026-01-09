@@ -107,19 +107,20 @@ pub fn Context::create_global() -> Context {
   let array_fn_body = Native(fn(_ctx, _this_val, args) {
     let arr_props = {}
     let mut len = 0.0
-    if args.length() == 1 {
-      match args[0] {
-        Number(n) => len = n
-        _ => {
-          arr_props.set("0", args[0])
-          len = 1.0
+    match args {
+      [Number(n)] => len = n
+      [arg] => {
+        arr_props.set("0", arg)
+        len = 1.0
+      }
+      _ => {
+        let mut i = 0
+        for arg in args {
+          arr_props.set(i.to_string(), arg)
+          i = i + 1
         }
+        len = i.to_double()
       }
-    } else {
-      for i, arg in args {
-        arr_props.set(i.to_string(), arg)
-      }
-      len = args.length().to_double()
     }
     arr_props.set("length", Number(len))
     Object({ properties: arr_props, prototype: Some(array_proto_val) })
@@ -167,6 +168,10 @@ pub fn Context::create_global() -> Context {
   number_proto_props.set("constructor", number_ctor_val)
   ctx.scope.set("Number", number_ctor_val)
 
+  // Console Object
+  let console_val = create_console_object(object_proto_val)
+  ctx.scope.set("console", console_val)
+
   // Boolean.prototype
   let boolean_proto_props = {}
   let boolean_proto = JSObject::{
@@ -188,7 +193,6 @@ pub fn Context::create_global() -> Context {
   // Date Object
   let date_val = create_date_object(object_proto_val)
   ctx.scope.set("Date", date_val)
-
 
   // JSON Object
   let json_val = create_json_object(object_proto_val)

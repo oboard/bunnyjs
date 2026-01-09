@@ -14,12 +14,14 @@ pub fn create_math_object(object_proto : JSValue) -> JSValue {
   // Methods
   let wrap_unary = fn(op : (Double) -> Double) {
     Native(fn(_ctx, _this_val, args) {
-      if args is [n, ..] {
-        let n = n.to_number()
-        JSValue::Number(op(n))
-      } else {
-        JSValue::Number(@double.not_a_number)
-      }
+      JSValue::Number(
+        if args is [n, ..] {
+          let n = n.to_number()
+          op(n)
+        } else {
+          @double.not_a_number
+        },
+      )
     })
   }
   let wrap_binary = fn(op : (Double, Double) -> Double) {
@@ -143,20 +145,22 @@ pub fn create_math_object(object_proto : JSValue) -> JSValue {
 
   // sign
   let sign_fn = Native(fn(_ctx, _this_val, args) {
-    if args.length() > 0 {
-      let n = args[0].to_number()
-      if n.is_nan() {
-        JSValue::Number(@double.not_a_number)
-      } else if n == 0.0 {
-        JSValue::Number(n) // Preserves +0 and -0
-      } else if n > 0.0 {
-        JSValue::Number(1.0)
+    JSValue::Number(
+      if args is [arg0, ..] {
+        let n = arg0.to_number()
+        if n.is_nan() {
+          @double.not_a_number
+        } else if n == 0.0 {
+          n // Preserves +0 and -0
+        } else if n > 0.0 {
+          1.0
+        } else {
+          -1.0
+        }
       } else {
-        JSValue::Number(-1.0)
-      }
-    } else {
-      JSValue::Number(@double.not_a_number)
-    }
+        @double.not_a_number
+      },
+    )
   })
   install_method("sign", sign_fn)
 

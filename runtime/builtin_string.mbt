@@ -74,10 +74,8 @@ pub fn create_string_constructor(proto : JSValue) -> JSValue {
         }
         _ => ()
       }
-      JSValue::String(val)
-    } else {
-      JSValue::String(val)
     }
+    JSValue::String(val)
   })
   let ctor_obj = JSFunction::new(name="String", body=ctor_fn)
   ctor_obj["prototype"] = proto

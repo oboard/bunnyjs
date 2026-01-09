@@ -4,12 +4,14 @@ pub fn init_boolean_prototype(boolean_proto_val : JSValue) -> Unit {
     Object(obj) => {
       // valueOf
       let value_of_fn = Native(fn(_ctx, this_val, _args) {
-        match this_val {
-          Boolean(b) => JSValue::Boolean(b)
-          Object({ properties: { "PrimitiveValue": Boolean(b), .. }, .. }) =>
-            JSValue::Boolean(b)
-          _ => JSValue::Boolean(false) // Should throw TypeError
-        }
+        JSValue::Boolean(
+          match this_val {
+            Boolean(b) => b
+            Object({ properties: { "PrimitiveValue": Boolean(b), .. }, .. }) =>
+              b
+            _ => false // Should throw TypeError
+          },
+        )
       })
       let value_of_obj = JSFunction::new(name="valueOf", body=value_of_fn)
       obj["valueOf"] = JSValue::Function(value_of_obj)

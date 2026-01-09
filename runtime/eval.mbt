@@ -101,9 +101,12 @@ pub fn Context::invoke(
       let strict = func.strict || strict_directive
       let new_ctx = new(parent=func.context, strict~)
       new_ctx.scope.set("this", this_val)
+      let param_len = func.params.length()
       for i, val in args {
-        if i < func.params.length() {
+        if i < param_len {
           new_ctx.scope.set(func.params[i], val)
+        } else {
+          break
         }
       }
       let mut res = JSValue::Undefined
