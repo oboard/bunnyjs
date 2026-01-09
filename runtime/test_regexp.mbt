@@ -1,7 +1,7 @@
 ///|
 test "RegExp Constructor and Test" {
   let obj_proto = JSValue::Object(JSObject::{ properties: {}, prototype: None })
-  let regexp_ctor_val = create_regexp_object(obj_proto)
+  let regexp_ctor_val = create_regexp_object(obj_proto, JSValue::Undefined)
   let regexp_ctor = match regexp_ctor_val {
     Function(f) => f
     _ => abort("RegExp is not a function")

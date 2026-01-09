@@ -189,9 +189,6 @@ pub fn Context::create_global() -> Context {
   let date_val = create_date_object(object_proto_val)
   ctx.scope.set("Date", date_val)
 
-  // RegExp Object
-  let regexp_val = create_regexp_object(object_proto_val)
-  ctx.scope.set("RegExp", regexp_val)
 
   // JSON Object
   let json_val = create_json_object(object_proto_val)
@@ -216,6 +213,14 @@ pub fn Context::create_global() -> Context {
     )
     ctx.scope.set(name, ctor)
   }
+
+  // RegExp Object
+  let syntax_error_val = match ctx.scope.get("SyntaxError") {
+    Some(v) => v
+    None => JSValue::Undefined
+  }
+  let regexp_val = create_regexp_object(object_proto_val, syntax_error_val)
+  ctx.scope.set("RegExp", regexp_val)
   ctx
 }
 

@@ -1,7 +1,10 @@
 //|
 
 ///|
-pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
+pub fn create_regexp_object(
+  object_proto : JSValue,
+  syntax_error_ctor : JSValue,
+) -> JSValue {
   let regexp_proto_props = {}
   let regexp_proto = JSValue::Object(JSObject::{
     properties: regexp_proto_props,
@@ -32,7 +35,19 @@ pub fn create_regexp_object(object_proto : JSValue) -> JSValue {
       _ => (@regexp.compile(""[:]) catch { _ => panic() }, false)
     }
     if not(valid) {
-      return JSValue::String("SyntaxError: Invalid regular expression")
+      let syntax_error_proto = match syntax_error_ctor {
+        Function(f) => f.properties.get("prototype")
+        Object(o) => o.properties.get("prototype")
+        _ => None
+      }
+      let err = JSObject::{
+        properties: {
+          "name": JSValue::String("SyntaxError"),
+          "message": JSValue::String("Invalid regular expression: " + effective_pattern),
+        },
+        prototype: syntax_error_proto,
+      }
+      raise EvalError::Throw(JSValue::Object(err))
     }
     let init_regexp_props = fn(obj : JSObject) {
       obj.properties.set("lastIndex", JSValue::Number(0.0))
