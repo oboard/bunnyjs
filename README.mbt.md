@@ -2,6 +2,9 @@
 
 TutuJS is an experimental JavaScript lexer, parser and interpreter written in MoonBit 🐰. We continuously improve the conformance to keep up with the ever-evolving standard.
 
+<!-- test262 svg -->
+![Test262 Progress](test/test262_progress.svg)
+
 ## 1. ES1 / ES2 / ES3 (The Foundations)
 
 ### Syntax & Statements

@@ -30,9 +30,11 @@ pub fn create_number_constructor(JSValue) -> JSValue
 
 pub fn create_object_constructor(JSValue, JSValue) -> JSValue
 
-pub fn create_regexp_object(JSValue) -> JSValue
+pub fn create_regexp_object(JSValue, JSValue) -> JSValue
 
 pub fn create_string_constructor(JSValue) -> JSValue
+
+pub fn format_js_error(JSValue) -> String
 
 pub fn init_array_prototype(JSValue) -> Unit
 
@@ -65,6 +67,7 @@ pub(all) struct Context {
 #as_free_fn(create_global)
 pub fn Context::create_global() -> Self
 pub fn Context::eval(Self, &Show) -> JSValue
+pub fn Context::eval_safe(Self, &Show) -> Result[JSValue, JSValue]
 pub fn Context::get_property(Self, JSValue, String) -> JSValue
 pub fn Context::invoke(Self, JSFunction, JSValue, Array[JSValue]) -> JSValue raise EvalError
 #as_free_fn(new)
